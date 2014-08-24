@@ -1,2 +1,6 @@
 解説：http://www.slideshare.net/chokudai/abc001
 コンテストデータ：http://www.chokudai.info/atcoder/ABC001.rar
+
+d/
+  参考：http://abc001.contest.atcoder.jp/submissions/107453
+
