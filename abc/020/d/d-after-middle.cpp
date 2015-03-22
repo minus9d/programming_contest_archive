@@ -47,10 +47,12 @@ const int MOD = 1000000007;
 
 int main(void)
 {
-    int N, K;
+    ll N, K;
     cin >> N >> K;
 
-    auto ret = 0LL;
+    if (K > 100) return 0;
+
+    ll ret = 0;
 
     // LCM(a,b) = a*b/GCD(a,b) = a*b/GCD(a%b, b) という関係を使う
     // a%bが同じ項を集めると、
@@ -59,16 +61,18 @@ int main(void)
     
     // k: NをKで割った余り
     REP(k, K){
-        // 項数
-        ll itemNum = (N-k)/K + 1;
-        // 初項, 最後の項
-        ll f = k;
-        ll l = (itemNum - 1) * K + k;
+        if (k > N) break;
 
-        // 0を除く
-        if (f == 0) {
-            f += K;
-            itemNum -= 1;
+        ll itemNum, f, l;
+        if (k == 0){
+            f = K;
+            itemNum = (N-k)/K;
+            l = itemNum * K;
+        }
+        else {
+            f = k;
+            itemNum = (N-k)/K + 1;
+            l = (itemNum - 1) * K + k;
         }
 
         // cout << "mod: " << k << endl;
@@ -79,6 +83,7 @@ int main(void)
         sum *= K;
         sum /= gcd(k, K);
         sum %= MOD;
+        // cout << "  sum:" << sum << endl;
 
         ret += sum;
         ret %= MOD;
