@@ -142,7 +142,7 @@ ll solve(vector<string>& strs, int N)
         }
     }
 
-    // もし使われていない語があれば失敗
+    // グループ化に失敗した長さ2以上の語があれば失敗
     // 例： ca と abc が集合に含まれているときに起こる
     for (auto& s : strs){
         if (SIZE(s) == 1) continue;
@@ -155,54 +155,13 @@ ll solve(vector<string>& strs, int N)
     // cout << "group_num " << group_num << endl;
     ret = fact(group_num);
     ret %= MOD;
+    // {a, a, a, abc}の場合3!をかける
     for (auto& p : single_ch) {
         ret *= fact(p.second);
         ret %= MOD;
     }
 
     return ret;
-    
-
-    // // cout << "begin: ";
-    // // for (auto& p : begin_ch) {
-    // //     cout << p.first << ", ";
-    // // }
-    // // cout << endl;
-    
-    
-
-    
-    
-
-    // // 全単語を正しくつなげた時の文字数を取得
-    // int char_num = 0;
-    // string tmp;
-    // REP(i, N) {
-    //     tmp += strs[ i ];
-    // }
-    // sort(ALL(tmp));
-    // do_unique(tmp);
-    // char_num = tmp.size();
-
-    // // 全探索。単語を全部入れる
-    // vector<int> shuff(N);
-    // REP(i, N){
-    //     shuff[i] = i;
-    // }
-    // sort(ALL(strs));
-
-    // ll ret = 0;
-    // do {
-    //     // もし題意に合う文字列なら、uniqueしても長さが変わらないはず
-    //     string cmb;
-    //     REP(i, N) {
-    //         cmb += strs[ shuff[i] ];
-    //     }
-    //     cmb.erase( unique(ALL(cmb)), cmb.end() );
-    //     if (char_num == SIZE(cmb)) ++ret;
-    // } while (next_permutation(ALL(shuff)));
-
-    // return ret;
 }
 
 int main(void)
