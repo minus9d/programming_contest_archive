@@ -49,6 +49,9 @@ int get_layer(int x, int y) {
     return (x + y) / 2 + 1;
 }
 
+
+map<tuple<int,int,int>,double> seen;
+
 // あるlayerにて、
 // n個のダイアが降った時、右側が「ちょうど」r個埋まっている確率。mxは右側に積もれるmaxの数（頂点除く）
 double prob_strict(int n, int r, int mx)
@@ -56,6 +59,9 @@ double prob_strict(int n, int r, int mx)
 	int l = n - r;
 	if (l == r && l == mx) return 1.0;
 	if (l < r) swap(l, r); // 常にrは小さい方と約束
+
+    if (seen.count( make_tuple(n,r,mx) )) return seen[make_tuple(n,r,mx)];
+
 
 	// ダイアが多すぎて溢れる場合
 	if (n - mx > r) return 0.0;
@@ -65,12 +71,16 @@ double prob_strict(int n, int r, int mx)
 		if (r == 0 || r == 1) return 0.5;
 		else return 0.0;
 	}
+
+    double prob = 0.0;
 	if (l == mx) {
-		return prob_strict(n - 1, r - 1, mx) + prob_strict(n - 1, r, mx) * 0.5;
+		prob = prob_strict(n - 1, r - 1, mx) + prob_strict(n - 1, r, mx) * 0.5;
 	}
 	else {
-		return prob_strict(n - 1, r - 1, mx) * 0.5 + prob_strict(n - 1, r, mx) * 0.5;
+		prob = prob_strict(n - 1, r - 1, mx) * 0.5 + prob_strict(n - 1, r, mx) * 0.5;
 	}
+    seen[make_tuple(n,r,mx)] = prob;
+    return prob;
 }
 
 // あるlayerにて、
