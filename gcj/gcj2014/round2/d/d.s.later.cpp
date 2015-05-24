@@ -49,29 +49,37 @@ ll calc_nodes_for_one_server(const vector<string>& words)
 vector<string> words;
 vector<int> comb;
 
-vector<ll> dfs(int idx, int M, int N) {
+ll mx = -1;
+ll way = 0;
+
+void dfs(int idx, int M, int N) {
     if (idx == M) {
+        // serverに単語を割り振る
         vector<vector<string>> servers(N);
-        REP(i,SIZE(comb)) {
+        REP(i,M){
             servers[comb[i]].push_back(words[i]);
         }
 
-        ll ret = 0;
+        // serverごとにprefixの数を数えて和を取る
+        ll n = 0;
         for(auto &s: servers) {
-            ret += calc_nodes_for_one_server(s);
+            n += calc_nodes_for_one_server(s);
         }
-        return vector<ll>{ret};
-    }
 
-    vector<ll> res;
-    REP(n,N) {
-        comb[idx] = n;
-        auto tmp = dfs(idx + 1, M, N);
-        for(auto t : tmp) {
-            res.pb(t);
+        if (n > mx) {
+            way = 1;
+            mx = n;
+        }
+        else if (n == mx) {
+            ++way;
         }
     }
-    return res;
+    else {
+        REP(n,N) {
+            comb[idx] = n;
+            dfs(idx + 1, M, N);
+        }
+    }
 }
 
 void solve(void)
@@ -79,27 +87,16 @@ void solve(void)
     int M, N;
     cin >> M >> N;
 
-    // cache.clear();
-
     words.resize(M);
     REP(m,M) cin >> words[m];
 
+    // reset
     comb.resize(M);
+    mx = -1;
+    way = 0;
 
     // 各wordについて、サーバ1, 2, ..., Nへ割り振られる場合をすべて試す
-    auto res = dfs(0, M, N);
-
-    ll mx = -1;
-    ll way = 0;
-    for(auto r : res) {
-        if (r > mx) {
-            way = 1;
-            mx = r;
-        }
-        else if (r == mx) {
-            ++way;
-        }
-    }
+    dfs(0, M, N);
 
     cout << mx << " " << way;
 }
