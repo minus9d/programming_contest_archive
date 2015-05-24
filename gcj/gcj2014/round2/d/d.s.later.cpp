@@ -53,18 +53,13 @@ ll calc_nodes_for_one_server(const vector<string>& words)
 
 vector<string> words;
 vector<int> comb;
+vector<vector<string>> servers;
 
 ll mx = -1;
 ll way = 0;
 
 void dfs(int idx, int M, int N) {
     if (idx == M) {
-        // serverに単語を割り振る
-        vector<vector<string>> servers(N);
-        REP(i,M){
-            servers[comb[i]].push_back(words[i]);
-        }
-
         // 枝刈り
         // 単語が割り当てられないサーバがあるときはノード数最大にならない
         for(auto &s: servers) {
@@ -87,8 +82,9 @@ void dfs(int idx, int M, int N) {
     }
     else {
         REP(n,N) {
-            comb[idx] = n;
+            servers[n].push_back(words[idx]);
             dfs(idx + 1, M, N);
+            servers[n].pop_back();
         }
     }
 }
@@ -104,6 +100,7 @@ void solve(void)
     // reset
     cache.clear();
     comb.resize(M);
+    servers.resize(N);
     mx = -1;
     way = 0;
 
