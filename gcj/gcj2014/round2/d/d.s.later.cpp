@@ -30,8 +30,12 @@ typedef unsigned long long ull;
 
 const string WALL = "-";
 
+map<vector<string>,ll> cache;
+
 ll calc_nodes_for_one_server(const vector<string>& words)
 {
+    if (cache.count(words)) return cache[words];
+
     set<string> prefixes;
 
     for(auto w : words) {
@@ -43,6 +47,7 @@ ll calc_nodes_for_one_server(const vector<string>& words)
         }
     }
     
+    cache[words] = prefixes.size();
     return prefixes.size();
 }
 
@@ -97,6 +102,7 @@ void solve(void)
     REP(m,M) cin >> words[m];
 
     // reset
+    cache.clear();
     comb.resize(M);
     mx = -1;
     way = 0;
