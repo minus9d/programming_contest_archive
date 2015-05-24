@@ -60,6 +60,12 @@ void dfs(int idx, int M, int N) {
             servers[comb[i]].push_back(words[i]);
         }
 
+        // 枝刈り
+        // 単語が割り当てられないサーバがあるときはノード数最大にならない
+        for(auto &s: servers) {
+            if (SIZE(s) == 0) return;
+        }
+
         // serverごとにprefixの数を数えて和を取る
         ll n = 0;
         for(auto &s: servers) {
