@@ -122,8 +122,34 @@ public:
         return move(d);
     }
 
+    // sから各頂点までの最短路に閉路があるかを返す
+    bool find_negative_loop_from_v(int s) {
+        vector<int> d(m_V, INT_MAX);
+        
+        d[s] = 0;
+        // ループの実行は高々|V|-1回のはず
+        // ループの実行回数が|V|よりも大きければ閉路があったとみなす
+        int count = 0;
+        while (true) {
+            bool update = false;
+            REP(i, SIZE(m_es)) {
+                edge e = m_es[i];
+                if (d[e.from] != INT_MAX && d[e.to] > d[e.from] + e.cost) {
+                    d[e.to] = d[e.from] + e.cost;
+                    update = true;
+                }
+            }
+            if (!update) break;
+
+            ++count;
+            if (count > m_V) return true;
+        }
+
+        return false;
+    }
+
     // グラフ全体のどこかに負の経路があることを検出
-    bool find_negative_loop(void) {
+    bool find_negative_loop_somewhere(void) {
         vector<int> d(m_V);
 
         REP(i, SIZE(d)) {
@@ -165,7 +191,7 @@ int main(){
         bf.add_dir_edge(v1, v2, cost);
     }
 
-    if (bf.find_negative_loop()) {
+    if (bf.find_negative_loop_from_v(r)) {
         cout << "NEGATIVE CYCLE" << endl;
     }
     else {
