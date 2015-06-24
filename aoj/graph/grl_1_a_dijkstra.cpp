@@ -26,22 +26,24 @@ typedef unsigned long long ull;
 #define pb push_back
 #define mp make_pair
 
-const int INF = INT_MAX;
-
 // 頂点は0-originとする
+template <typename T>
 class Dijkstra {
-
-    struct edge { int to, cost; };
-    typedef pair<int, int> P; // <最短距離, 頂点番号>
+    struct edge { int to; T cost; };
+    typedef pair<T, int> P; // <最短距離, 頂点番号>
 
 public:
-    Dijkstra(int V) {
-        m_V = V;
+    T INF;
+
+    Dijkstra(int V) 
+        : INF(std::numeric_limits<T>::max())
+        , m_V(V)
+        {
         m_G.resize(m_V);
     }
 
     // a -> bに片方向のエッジを張る
-    void add_dir_edge(int a, int b, int cost) {
+    void add_dir_edge(int a, int b, T cost) {
         m_G[a].push_back( edge{ b, cost } );
     }
 
@@ -52,8 +54,8 @@ public:
     }
 
     // 頂点sから各頂点までの距離を計算して返す
-    vector<int> shortest_path(int s) {
-        vector<int> d(m_V, INF);
+    vector<T> shortest_path(int s) {
+        vector<T> d(m_V, INF);
         priority_queue<P, vector<P>, greater<P> > que;
         d[s] = 0;
         que.push(P(0, s));
@@ -62,7 +64,7 @@ public:
             P p = que.top();
             que.pop();
 
-            int dist = p.first;
+            T dist = p.first;
             int v = p.second;
             if (d[v] < dist) continue;
             REP(i, m_G[v].size()) {
@@ -86,7 +88,7 @@ private:
 int main(){
     int V, E, r;
     cin >> V >> E >> r;
-    Dijkstra dij(V);
+    Dijkstra<int> dij(V);
 
     REP(e,E) {
         int v1, v2, cost;
@@ -96,7 +98,7 @@ int main(){
 
     auto distances = dij.shortest_path(r);
     for(auto d : distances) {
-        if (d == INT_MAX) cout << "INF" << endl;
+        if (d == dij.INF) cout << "INF" << endl;
         else cout << d << endl;
     }
 
