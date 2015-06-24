@@ -64,8 +64,8 @@ public:
             P p = que.top();
             que.pop();
 
-            T dist = p.first;
-            int v = p.second;
+            auto dist = p.first;
+            auto v = p.second;
             if (d[v] < dist) continue;
             REP(i, m_G[v].size()) {
                 edge e = m_G[v][i];
