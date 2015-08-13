@@ -1,6 +1,6 @@
-### AtCoder Beginner Contest
+### TopCoder
 
-問題、解説へのリンク：[AtCoder (アットコーダー)](http://atcoder.jp/)
+解説へのリンク：[Algorithm Problem Set Analysis - TopCoder Wiki](http://apps.topcoder.com/wiki/display/tc/Algorithm+Problem+Set+Analysis)
 
 | 記号 | 意味 |
 |:----:|:----:|
@@ -16,3 +16,4 @@
 |:---:|:-:|:-:|:-:|
 | TCO15R2B |□ 期待値|-|-|
 | TCO15R2C|×|-|-|
+| 665-Div1|×LuckySum|-|-|
