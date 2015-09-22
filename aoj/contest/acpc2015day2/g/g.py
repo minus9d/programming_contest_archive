@@ -1,12 +1,22 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+# それぞれの文字列について、文字の出現頻度が高い順に並べる
+# e.g.
+#   s1 = "yyyzzccb" -> [3, 2, 2, 1]
+#   s2 = "aabbcdef" -> [2, 2, 1, 1, 1, 1]
+# 同じ順位の文字同士をマッチングさせる
+# 置換回数は、((3-2) + (2-2) + (2-1) + (1-1) + 1 + 1) / 2 = 2
+
 from collections import defaultdict
 
 N = int(input())
 s1 = input()
 s2 = input()
 
+# 文字列から頻度回数を取り出す
+# e.g. s: "yyyzzccb"
+#      ret: [3, 2, 2, 1] 
 def make_appears(s):
     chars = list(map(ord, s))
     hist = defaultdict(int)
