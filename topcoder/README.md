@@ -15,5 +15,6 @@
 | No. |One|Two|Three|
 |:---:|:-:|:-:|:-:|
 | TCO15R2B |□ 期待値|-|-|
-| TCO15R2C|×|-|-|
-| 665-Div1|×LuckySum|-|-|
+| TCO15R2C |×|-|-|
+| 665-Div1 |×LuckySum|-|-|
+| 669-Div2 |◎|◎|×MST|
