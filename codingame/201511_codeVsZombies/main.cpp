@@ -47,12 +47,12 @@ struct Object {
     Object(int _id, int _x, int _y)
         : id(_id)
         , pos(_x, _y)
-        {};
+    {};
     Object(int _id, int _x, int _y, int _x2, int _y2)
         : id(_id)
         , pos(_x, _y)
         , goal(_x, _y)
-        {};
+    {};
 };
 
 struct State {
@@ -124,38 +124,43 @@ int getClosestHuman(const State& s)
     return mn_idx;
 }
 
+void input(State& s)
+{
+    cin >> s.ashPos.x >> s.ashPos.y; cin.ignore();
+    int humanCount;
+    cin >> humanCount; cin.ignore();
+    REP(i, humanCount) {
+        int humanId;
+        int humanX;
+        int humanY;
+        cin >> humanId >> humanX >> humanY; cin.ignore();
+        s.humans.emplace_back(humanId, humanX, humanY);
+    }
+    int zombieCount;
+    cin >> zombieCount; cin.ignore();
+    REP(i, zombieCount) {
+        int zombieId;
+        int zombieX;
+        int zombieY;
+        int zombieXNext;
+        int zombieYNext;
+        cin >> zombieId >> zombieX >> zombieY >> zombieXNext >> zombieYNext; cin.ignore();
+        s.zombies.emplace_back(zombieId, zombieX, zombieY, zombieXNext, zombieYNext);
+    }
+}
+
 /**
- * Save humans, destroy zombies!
- **/
+* Save humans, destroy zombies!
+**/
 int main()
 {
     // game loop
     while (1) {
         State s;
-        cin >> s.ashPos.x >> s.ashPos.y; cin.ignore();
-        int humanCount;
-        cin >> humanCount; cin.ignore();
-        REP(i, humanCount) {
-            int humanId;
-            int humanX;
-            int humanY;
-            cin >> humanId >> humanX >> humanY; cin.ignore();
-            s.humans.emplace_back(humanId, humanX, humanY);
-        }
-        int zombieCount;
-        cin >> zombieCount; cin.ignore();
-        REP(i, zombieCount) {
-            int zombieId;
-            int zombieX;
-            int zombieY;
-            int zombieXNext;
-            int zombieYNext;
-            cin >> zombieId >> zombieX >> zombieY >> zombieXNext >> zombieYNext; cin.ignore();
-            s.zombies.emplace_back(zombieId, zombieX, zombieY, zombieXNext, zombieYNext);
-        }
 
+        input(s);
         s.print();
-        
+
         // Ç∆ÇËÇ†Ç¶Ç∏ç≈äÒÇËÇÃhumanÇÃÇªÇŒÇ≈ë“ã@ÅBÇªÇ§Ç∑ÇÍÇŒëSñ≈ÇÕñhÇ∞ÇÈ
         int closestHumanIdx = getClosestHuman(s);
         Coord goal = s.humans[closestHumanIdx].pos;
