@@ -40,15 +40,20 @@ struct Coord {
     }
 };
 
-struct Object {
+struct Human {
     int id;
     Coord pos;
-    Coord goal;
-    Object(int _id, int _x, int _y)
+    Human(int _id, int _x, int _y)
         : id(_id)
         , pos(_x, _y)
     {};
-    Object(int _id, int _x, int _y, int _x2, int _y2)
+};
+
+struct Zombie {
+    int id;
+    Coord pos;
+    Coord goal;
+    Zombie(int _id, int _x, int _y, int _x2, int _y2)
         : id(_id)
         , pos(_x, _y)
         , goal(_x, _y)
@@ -57,8 +62,8 @@ struct Object {
 
 struct State {
     Coord ashPos;
-    vector<Object> humans;
-    vector<Object> zombies;
+    vector<Human> humans;
+    vector<Zombie> zombies;
     void print() {
         cerr << "ash: ";
         ashPos.print();
@@ -149,6 +154,11 @@ void input(State& s)
     }
 }
 
+void extractInfo(State& s)
+{
+
+}
+
 /**
 * Save humans, destroy zombies!
 **/
@@ -160,6 +170,8 @@ int main()
 
         input(s);
         s.print();
+
+        extractInfo(s);
 
         // ‚Æ‚è‚ ‚¦‚¸ÅŠñ‚è‚Ìhuman‚Ì‚»‚Î‚Å‘Ò‹@B‚»‚¤‚·‚ê‚Î‘S–Å‚Í–h‚°‚é
         int closestHumanIdx = getClosestHuman(s);
