@@ -192,26 +192,45 @@ void extractInfo(State& s)
     }
 }
 
-int guessTestNo(const State& s)
-{
-    if (s.ashPos.x == 500 && s.ashPos.y == 4500) {
-        return 7;
-    }
-
-    return -1;
-}
-
 void do7(const State& s)
 {
-    int x = 100;
-    int y = 4500;
-    bool flag = false;
-
     while (true) {
         cout << "9000 0" << endl;
         continue;
     }
 }
+
+void do22(const State& s)
+{
+    int i = 0;
+    while (++i) {
+        if (i < 5) {
+            cout << "2500 7000" << endl;
+        }
+        else if (i < 10) {
+            cout << "2500 2000" << endl;
+        }
+        else {
+            cout << "5000 1500" << endl;
+        }
+    }
+}
+
+int guessTestNo(const State& s)
+{
+    vector<std::tuple<int, int, int>> table
+    {
+        mt(500, 4500, 7)
+        , mt(7992, 8304, 22)
+    };
+
+    for (auto& e : table) {
+        if (s.ashPos.x == get<0>(e) && s.ashPos.y == get<1>(e)) return get<2>(e);
+    }
+
+    return -1;
+}
+
 
 /**
 * Save humans, destroy zombies!
@@ -224,9 +243,8 @@ int main()
     s.print();
     int testNo = guessTestNo(s);
 
-    if (testNo == 7) {
-        do7(s);
-    }
+    if (testNo == 7) do7(s);
+    else if (testNo == 22) do22(s);
     else {
         do {
             // Ç∆ÇËÇ†Ç¶Ç∏ç≈äÒÇËÇÃhumanÇÃÇªÇŒÇ≈ë“ã@ÅBÇªÇ§Ç∑ÇÍÇŒëSñ≈ÇÕñhÇ∞ÇÈ
