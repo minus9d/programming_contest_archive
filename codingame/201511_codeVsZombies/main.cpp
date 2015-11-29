@@ -35,6 +35,9 @@ struct Coord {
     Coord(int _x, int _y)
         : x(_x), y(_y) {};
     Coord() {};
+    void print() {
+        fprintf(stderr, "(%d, %d)", x, y);
+    }
 };
 
 struct Object {
@@ -56,6 +59,24 @@ struct State {
     Coord ashPos;
     vector<Object> humans;
     vector<Object> zombies;
+    void print() {
+        cerr << "ash: ";
+        ashPos.print();
+        cerr << "humans: " << endl;
+        for (auto& h : humans) {
+            cerr << "  ";
+            h.pos.print();
+            cerr << endl;
+        }
+        cerr << "zombies: " << endl;
+        for (auto& z : zombies) {
+            cerr << "  ";
+            z.pos.print();
+            cerr << ", ";
+            z.goal.print();
+            cerr << endl;
+        }
+    }
 };
 
 int pow2(int a)
@@ -112,6 +133,8 @@ int main()
             cin >> zombieId >> zombieX >> zombieY >> zombieXNext >> zombieYNext; cin.ignore();
             s.zombies.emplace_back(zombieId, zombieX, zombieY, zombieXNext, zombieYNext);
         }
+
+        s.print();
         
         // Ç∆ÇËÇ†Ç¶Ç∏ç≈äÒÇËÇÃhumanÇÃÇªÇŒÇ≈ë“ã@ÅBÇªÇ§Ç∑ÇÍÇŒëSñ≈ÇÕñhÇ∞ÇÈ
         int closestHumanIdx = getClosestHuman(s);
