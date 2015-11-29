@@ -84,9 +84,22 @@ int pow2(int a)
     return a * a;
 }
 
-int getDist2(const Coord& c1, const Coord& c2)
+double getDist(const Coord& c1, const Coord& c2)
 {
-    return pow2(c1.x - c2.x) + pow2(c1.y - c2.y);
+    return hypot(c1.x - c2.x, c1.y - c2.y);
+}
+
+int getTimeToBeEaten(const State& s, int humanIdx)
+{
+    auto humanPos = s.humans[humanIdx].pos;
+    int ret = 100000;
+    for (const auto& z : s.zombies)
+    {
+        auto zombieToHuman = getDist(humanPos, z.pos);
+        int timeToBeEaten = zombieToHuman / 200;
+        ret = min(ret, timeToBeEaten);
+    }
+    return ret;
 }
 
 int getClosestHuman(const State& s)
@@ -95,9 +108,16 @@ int getClosestHuman(const State& s)
     int mn_idx = 0;
     REP(i, SIZE(s.humans))
     {
-        int dist2 = getDist2(s.humans[i].pos, s.ashPos);
-        if (dist2 < mn) {
-            mn = dist2;
+        int humanToAsh = getDist(s.humans[i].pos, s.ashPos);
+        int timeToSave = (humanToAsh - 2000) / 1000;
+
+        int timeToBeEaten = getTimeToBeEaten(s, i);
+
+        // ŠÔ‚É‡‚í‚È‚¢
+        if (timeToBeEaten < timeToSave) continue;
+
+        if (humanToAsh < mn) {
+            mn = humanToAsh;
             mn_idx = i;
         }
     }
