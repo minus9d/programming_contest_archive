@@ -192,46 +192,6 @@ void extractInfo(State& s)
     }
 }
 
-void do7(const State& s)
-{
-    while (true) {
-        cout << "9000 0" << endl;
-        continue;
-    }
-}
-
-void do22(const State& s)
-{
-    int i = 0;
-    while (++i) {
-        if (i < 5) {
-            cout << "2500 7000" << endl;
-        }
-        else if (i < 10) {
-            cout << "2500 2000" << endl;
-        }
-        else {
-            cout << "5000 1500" << endl;
-        }
-    }
-}
-
-int guessTestNo(const State& s)
-{
-    vector<std::tuple<int, int, int>> table
-    {
-        mt(500, 4500, 7)
-        , mt(7992, 8304, 22)
-    };
-
-    for (auto& e : table) {
-        if (s.ashPos.x == get<0>(e) && s.ashPos.y == get<1>(e)) return get<2>(e);
-    }
-
-    return -1;
-}
-
-
 /**
 * Save humans, destroy zombies!
 **/
@@ -241,19 +201,14 @@ int main()
     input(s);
     extractInfo(s);
     s.print();
-    int testNo = guessTestNo(s);
 
-    if (testNo == 7) do7(s);
-    else if (testNo == 22) do22(s);
-    else {
-        do {
-            // とりあえず最寄りのhumanのそばで待機。そうすれば全滅は防げる
-            int closestHumanIdx = decideHumanToBeProtected(s);
-            Coord goal = s.humans[closestHumanIdx].pos;
+    do {
+        // とりあえず最寄りのhumanのそばで待機。そうすれば全滅は防げる
+        int closestHumanIdx = decideHumanToBeProtected(s);
+        Coord goal = s.humans[closestHumanIdx].pos;
 
-            cout << goal.x << " " << goal.y << endl; // Your destination coordinates
-        } while (true);
-    }
+        cout << goal.x << " " << goal.y << endl; // Your destination coordinates
+    } while (true);
 
     return 0;
 }
