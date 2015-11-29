@@ -35,14 +35,16 @@ struct Coord {
     Coord(int _x, int _y)
         : x(_x), y(_y) {};
     Coord() {};
-    void print() {
+    void print(bool e) {
         fprintf(stderr, "(%d, %d)", x, y);
+        if (e) fprintf(stderr, "\n");
     }
 };
 
 struct Human {
     int id;
     Coord pos;
+    vector<int> sniperedIdxs;
     Human(int _id, int _x, int _y)
         : id(_id)
         , pos(_x, _y)
@@ -53,11 +55,13 @@ struct Zombie {
     int id;
     Coord pos;
     Coord goal;
+    int targetIdx;
     Zombie(int _id, int _x, int _y, int _x2, int _y2)
         : id(_id)
         , pos(_x, _y)
         , goal(_x, _y)
-    {};
+    {
+    };
 };
 
 struct State {
@@ -66,20 +70,19 @@ struct State {
     vector<Zombie> zombies;
     void print() {
         cerr << "ash: ";
-        ashPos.print();
+        ashPos.print(true);
         cerr << "humans: " << endl;
         for (auto& h : humans) {
             cerr << "  ";
-            h.pos.print();
-            cerr << endl;
+            h.pos.print(true);
         }
         cerr << "zombies: " << endl;
         for (auto& z : zombies) {
             cerr << "  ";
-            z.pos.print();
+            z.pos.print(false);
             cerr << ", ";
-            z.goal.print();
-            cerr << endl;
+            z.goal.print(false);
+            cerr << " target: " << z.targetIdx << endl;
         }
     }
 };
@@ -94,6 +97,12 @@ double getDist(const Coord& c1, const Coord& c2)
     return hypot(c1.x - c2.x, c1.y - c2.y);
 }
 
+int getSquaredDist(const Coord& c1, const Coord& c2)
+{
+    return pow2(c1.x - c2.x) + pow2(c1.y - c2.y);
+}
+
+
 int getTimeToBeEaten(const State& s, int humanIdx)
 {
     auto humanPos = s.humans[humanIdx].pos;
@@ -107,13 +116,13 @@ int getTimeToBeEaten(const State& s, int humanIdx)
     return ret;
 }
 
-int getClosestHuman(const State& s)
+int decideHumanToBeProtected(const State& s)
 {
     int mn = 1e9;
     int mn_idx = 0;
     REP(i, SIZE(s.humans))
     {
-        int humanToAsh = getDist(s.humans[i].pos, s.ashPos);
+        auto humanToAsh = getDist(s.humans[i].pos, s.ashPos);
         int timeToSave = (humanToAsh - 2000) / 1000;
 
         int timeToBeEaten = getTimeToBeEaten(s, i);
@@ -127,6 +136,22 @@ int getClosestHuman(const State& s)
         }
     }
     return mn_idx;
+}
+
+// Ashが一番近い場合は-1
+int getClosestHumanIdx(const State& s, Coord pt)
+{
+    int mn = getSquaredDist(pt, s.ashPos);
+    int ret = -1;
+    REP(i, SIZE(s.humans))
+    {
+        auto dist = getSquaredDist(s.humans[i].pos, s.ashPos);
+        if (dist < mn) {
+            ret = i;
+            mn = dist;
+        }
+    }
+    return ret;
 }
 
 void input(State& s)
@@ -156,7 +181,16 @@ void input(State& s)
 
 void extractInfo(State& s)
 {
-
+    // 各ゾンビについて誰を狙っているか推論
+    REP(z, SIZE(s.zombies))
+    {
+        auto idx = getClosestHumanIdx(s, s.zombies[z].goal);
+        cerr << "nearest: " << idx << endl;
+        s.zombies[z].targetIdx = idx;
+        if (idx != -1) {
+            s.humans[idx].sniperedIdxs.push_back(z);
+        }
+    }
 }
 
 /**
@@ -169,12 +203,12 @@ int main()
         State s;
 
         input(s);
-        s.print();
-
         extractInfo(s);
 
+        s.print();
+
         // とりあえず最寄りのhumanのそばで待機。そうすれば全滅は防げる
-        int closestHumanIdx = getClosestHuman(s);
+        int closestHumanIdx = decideHumanToBeProtected(s);
         Coord goal = s.humans[closestHumanIdx].pos;
 
         cout << goal.x << " " << goal.y << endl; // Your destination coordinates
