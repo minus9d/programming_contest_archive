@@ -1,0 +1,6 @@
+#include <stdio.h>
+
+int main(void) {
+    printf("Merry Christmas!\n");
+    return 0;
+}
