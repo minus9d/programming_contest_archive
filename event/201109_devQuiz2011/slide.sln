@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual C++ Express 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "slide", "slide\slide.vcxproj", "{737F3152-4BF2-4EF8-8EAB-93F4DFF55598}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ppl-test", "ppl-test\ppl-test.vcxproj", "{4D1983D6-BBE2-467C-AE91-95B3852F5BB2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{737F3152-4BF2-4EF8-8EAB-93F4DFF55598}.Debug|Win32.ActiveCfg = Debug|Win32
+		{737F3152-4BF2-4EF8-8EAB-93F4DFF55598}.Debug|Win32.Build.0 = Debug|Win32
+		{737F3152-4BF2-4EF8-8EAB-93F4DFF55598}.Release|Win32.ActiveCfg = Release|Win32
+		{737F3152-4BF2-4EF8-8EAB-93F4DFF55598}.Release|Win32.Build.0 = Release|Win32
+		{4D1983D6-BBE2-467C-AE91-95B3852F5BB2}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4D1983D6-BBE2-467C-AE91-95B3852F5BB2}.Debug|Win32.Build.0 = Debug|Win32
+		{4D1983D6-BBE2-467C-AE91-95B3852F5BB2}.Release|Win32.ActiveCfg = Release|Win32
+		{4D1983D6-BBE2-467C-AE91-95B3852F5BB2}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
