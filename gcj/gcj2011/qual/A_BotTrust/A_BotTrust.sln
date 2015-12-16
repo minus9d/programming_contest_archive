@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual C++ Express 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "A_BotTrust", "A_BotTrust\A_BotTrust.vcxproj", "{AD3A0418-4253-4CAF-B35B-15F4BD53BE52}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "B_Magicka", "..\B_Magicka\B_Magicka.vcxproj", "{61246344-5657-4692-8332-891B4A636999}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AD3A0418-4253-4CAF-B35B-15F4BD53BE52}.Debug|Win32.ActiveCfg = Debug|Win32
+		{AD3A0418-4253-4CAF-B35B-15F4BD53BE52}.Debug|Win32.Build.0 = Debug|Win32
+		{AD3A0418-4253-4CAF-B35B-15F4BD53BE52}.Release|Win32.ActiveCfg = Release|Win32
+		{AD3A0418-4253-4CAF-B35B-15F4BD53BE52}.Release|Win32.Build.0 = Release|Win32
+		{61246344-5657-4692-8332-891B4A636999}.Debug|Win32.ActiveCfg = Debug|Win32
+		{61246344-5657-4692-8332-891B4A636999}.Debug|Win32.Build.0 = Debug|Win32
+		{61246344-5657-4692-8332-891B4A636999}.Release|Win32.ActiveCfg = Release|Win32
+		{61246344-5657-4692-8332-891B4A636999}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
