@@ -69,9 +69,9 @@ int main()
 
         cout << cps[pods[0].nextCheckPointId].x << " "
              << cps[pods[0].nextCheckPointId].y << " "
-             << "100" << endl;
+             << "90" << endl;
         cout << cps[pods[1].nextCheckPointId].x << " "
              << cps[pods[1].nextCheckPointId].y << " "
-             << "100" << endl;
+             << "110" << endl;
     }
 }
