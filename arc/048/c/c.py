@@ -2,23 +2,23 @@
 # -*- coding: utf-8 -*-
 
 import fractions
-import sys
+import functools
 
 MOD = 1000000007
 N = int(input())
+
 Ls = []
-odd = False
 for n in range(N):
     t = int(input())
     Ls.append(t)
-    if t%2: odd = True
-Ls.sort()
 
-mn = Ls[0]
-for i in range(1,N):
-    if i == 1:
-        n = Ls[i]-mn
-    else:
-        n = fractions.gcd(n, Ls[i]-mn)
-print(pow(2, (mn+(n+1)//2), MOD))
+mn = min(Ls)
+
+
+# Ls = [3, 7, 11, 15]のとき、
+# これらからもっとも短い長さ3を引いた[0, 4, 8, 12]のgcdをもとめる
+# gcd(0, a) = aとなるので、0は無視できる
+gcded = functools.reduce(fractions.gcd, [x - mn for x in Ls])
+
+print(pow(2, (mn + (gcded+1)//2), MOD))
         
