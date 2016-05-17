@@ -1,0 +1,65 @@
+1
+15
+FQ VZ
+GT VZ
+WL QJ
+FQ EP
+BN RC
+ZC RC
+ZC JY
+WR LT
+GT FX
+JM QJ
+SO JY
+BN EP
+JM FZ
+WR FZ
+WL FX
+# should be 7
+
+
+1
+9
+A B
+C D
+E F
+A D
+A F
+C B
+C F
+E B
+E D
+# should be 6
+
+A D
+C B
+# should be 2
+
+
+
+4
+A B
+C D
+A D
+C B
+# should be 2
+
+
+2
+A B
+C D
+# should be 0
+
+
+3
+3
+HYDROCARBON COMBUSTION
+QUAIL BEHAVIOR
+QUAIL COMBUSTION
+3
+CODE JAM
+SPACE JAM
+PEARL JAM
+2
+INTERGALACTIC PLANETARY
+PLANETARY INTERGALACTIC
