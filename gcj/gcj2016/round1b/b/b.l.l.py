@@ -19,11 +19,11 @@ def common(S, idx, ch):
                 ret += S[i]
     return ret
 
-def maxify(S, idx):
+def maximize(S, idx):
     """ idx以降の文字をできるだけ大きくする """
     return common(S, idx, '9')
 
-def minify(S, idx):
+def minimize(S, idx):
     """ idx以降の文字をできるだけ小さくする """
     return common(S, idx, '0')
 
@@ -57,11 +57,11 @@ def dfs(S1,S2,idx):
         # (ii) 文字が一致しないなら、大小関係が確定
         else:
             if ch1 < ch2:
-                T1 = maxify(S1, idx+1)
-                T2 = minify(S2, idx+1)
+                T1 = maximize(S1, idx+1)
+                T2 = minimize(S2, idx+1)
             else:
-                T1 = minify(S1, idx+1)
-                T2 = maxify(S2, idx+1)
+                T1 = minimize(S1, idx+1)
+                T2 = maximize(S2, idx+1)
             return calc_diff(T1, T2),T1,T2
 
     # (II) 文字が両方?の場合
@@ -78,15 +78,15 @@ def dfs(S1,S2,idx):
         # (ii) 0, 1として大小関係を確定させる
         T1[idx] = '0'
         T2[idx] = '1'
-        U1 = maxify(T1, idx+1)
-        U2 = minify(T2, idx+1)
+        U1 = maximize(T1, idx+1)
+        U2 = minimize(T2, idx+1)
         cands.append((calc_diff(U1, U2), U1, U2))
 
         # (iii) 1, 0として大小関係を確定させる
         T1[idx] = '1'
         T2[idx] = '0'
-        U1 = minify(T1, idx+1)
-        U2 = maxify(T2, idx+1)
+        U1 = minimize(T1, idx+1)
+        U2 = maximize(T2, idx+1)
         cands.append((calc_diff(U1, U2), U1, U2))
 
         return min(cands)
@@ -107,15 +107,15 @@ def dfs(S1,S2,idx):
         # (i) T1 < T2という大小関係を確定させる
         if ch1 != '9':
             T2[idx] = chr(ord(ch1) + 1)
-            U1 = maxify(T1, idx+1)
-            U2 = minify(T2, idx+1)
+            U1 = maximize(T1, idx+1)
+            U2 = minimize(T2, idx+1)
             cands.append((calc_diff(U1, U2), U1, U2))
 
         # (ii) T1 > T2という大小関係を確定させる
         if ch1 != '0':
             T2[idx] = chr(ord(ch1) - 1)
-            U1 = minify(T1, idx+1)
-            U2 = maxify(T2, idx+1)
+            U1 = minimize(T1, idx+1)
+            U2 = maximize(T2, idx+1)
             cands.append((calc_diff(U1, U2), U1, U2))
 
         # (iii) 両方同じ数字にして次に
