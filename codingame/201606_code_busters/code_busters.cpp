@@ -78,11 +78,23 @@ bool near_base(P& p, P& base) {
     return d2 <= pow2(1600);
 }
 
+bool stunnable(const Entity& me, const vector<Entity>& them, int& them_idx) {
+    REP(i, SIZE(them)) {
+        for(auto& him : them) {
+            auto d2 = dist2(me.p, him.p);
+            if (d2 <= pow2(1760)) {
+                them_idx = i;
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 /**
  * Send your busters out into the fog to trap ghosts and bring them home!
  **/
-int main()
-{
+int main() {
     int bustersPerPlayer; // the amount of busters you control
     cin >> bustersPerPlayer; cin.ignore();
     int ghostCount; // the amount of ghosts on the map
@@ -155,7 +167,11 @@ int main()
                 }
             }
             else {
-                if (SIZE(ghosts) == 0) {
+                int them_idx = 0;
+                if (stunnable(me, them, them_idx)) {
+                    printf("STUN %d\n", them[them_idx].id);
+                }
+                else if (SIZE(ghosts) == 0) {
                     auto cur_goal = next_goals[us_next_goal_idx[i]];
                     if (cur_goal == me.p) {
                         us_next_goal_idx[i] = (us_next_goal_idx[i] + 1) % SIZE(next_goals);
