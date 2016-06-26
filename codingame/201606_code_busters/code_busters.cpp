@@ -97,6 +97,18 @@ int main()
     else {
         base = P{16000,9000};
     }
+    
+    
+    vector<P> next_goals {
+        P{900, 900},
+        P{16000 - 900, 900},
+        P{16000 - 900, 9000 - 900},
+        P{900, 9000 - 900}
+    };
+    vector<int> us_next_goal_idx(bustersPerPlayer);
+    REP(i, bustersPerPlayer) {
+        us_next_goal_idx[i] = (i % SIZE(next_goals));
+    }
 
     // game loop
     while (1) {
@@ -132,8 +144,8 @@ int main()
         
         
         
-
-        for(auto& me: us) {
+        REP(i, SIZE(us)) {
+            auto& me = us[i];
             if (me.state == 1) {
                 if (near_base(me.p, base)) {
                     printf("RELEASE\n");
@@ -144,16 +156,19 @@ int main()
             }
             else {
                 if (SIZE(ghosts) == 0) {
-                    // printf("MOVE %d %d\n",
-                    // me.p.first + 500 * ((rand() % 3) - 1),
-                    // me.p.second + 500 * ((rand() % 3) - 1)
-                    // );
-                    if (base.first == 0) {
-                        printf("MOVE 16000 9000\n");
+                    auto cur_goal = next_goals[us_next_goal_idx[i]];
+                    if (cur_goal == me.p) {
+                        us_next_goal_idx[i] = (us_next_goal_idx[i] + 1) % SIZE(next_goals);
                     }
-                    else {
-                        printf("MOVE 0 0\n");
-                    }
+                    cur_goal = next_goals[us_next_goal_idx[i]];
+
+                    printf("MOVE %d %d\n", cur_goal.first, cur_goal.second);
+                    // if (base.first == 0) {
+                    //     printf("MOVE 16000 9000\n");
+                    // }
+                    // else {
+                    //     printf("MOVE 0 0\n");
+                    // }
                 }
                 else {
                     int g_idx;
