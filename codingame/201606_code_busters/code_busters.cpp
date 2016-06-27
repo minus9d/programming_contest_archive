@@ -78,17 +78,37 @@ bool near_base(P& p, P& base) {
     return d2 <= pow2(1600);
 }
 
-bool stunnable(const Entity& me, const vector<Entity>& them, int& them_idx) {
+bool stunnable(const Entity& me, const vector<Entity>& them,
+               const vector<int>& last_stun, const int time,
+               int& them_idx)
+{
+    int kept = -1;
+
     REP(i, SIZE(them)) {
         for(auto& him : them) {
             auto d2 = dist2(me.p, him.p);
-            if (d2 <= pow2(1760)) {
-                them_idx = i;
-                return true;
+            if (d2 <= pow2(1760)
+                && last_stun[me.id] + 20 <= time
+                ) {
+                if (him.state == 2) continue;
+                else if (him.state == 1) {
+                    them_idx = i;
+                    return true;
+                }
+                else  {
+                    kept = i;
+                }
             }
         }
     }
-    return false;
+
+    if (kept != -1) {
+        them_idx = kept;
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 /**
@@ -122,8 +142,14 @@ int main() {
         us_next_goal_idx[i] = (i % SIZE(next_goals));
     }
 
+    vector<int> last_stun(bustersPerPlayer);
+
+    int time = 0;
+
     // game loop
     while (1) {
+        ++time;
+
         vector<Entity> us;
         vector<Entity> them;
         vector<Entity> ghosts;
@@ -168,8 +194,9 @@ int main() {
             }
             else {
                 int them_idx = 0;
-                if (stunnable(me, them, them_idx)) {
+                if (stunnable(me, them, last_stun, time, them_idx)) {
                     printf("STUN %d\n", them[them_idx].id);
+                    last_stun[me.id] = time;
                 }
                 else if (SIZE(ghosts) == 0) {
                     auto cur_goal = next_goals[us_next_goal_idx[i]];
