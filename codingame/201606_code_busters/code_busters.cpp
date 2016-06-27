@@ -55,20 +55,26 @@ bool can_bust(const ll d2) {
     return (pow2(BR1) <= d2 && d2 <= pow2(BR2));
 }
 
+bool too_close(const ll d2) {
+    return pow2(BR1) > d2;
+}
+
 void find_closest_ghost(const Entity& me, const vector<Entity>& ghosts,
-                        int& g_idx, bool& ok)
+                        int& g_idx, string& state)
 {
-    ok = false;
+    // state: "bustable, "too_close", "nearby", "no"
+
+    state = "no";
+
     ll nearest = 1e15;
     REP(i, SIZE(ghosts)) {
         auto& g = ghosts[i];
         auto d2 = dist2(me.p, g.p);
         if (can_bust(d2)) {
             g_idx = i;
-            ok = true;
+            state = "bustable";
             return;
         }
-
         if (d2 < nearest) {
             nearest = d2;
             g_idx = i;
@@ -76,9 +82,14 @@ void find_closest_ghost(const Entity& me, const vector<Entity>& ghosts,
     }
 
     if (nearest > pow2(2000)) {
-        ok = false;
+        state = "no";
     }
-
+    else if (too_close(nearest)) {
+        state = "too_close";
+    }
+    else {
+        state = "nearby";
+    }
 }
 
 bool near_base(P& p, P& base) {
@@ -241,16 +252,23 @@ int main() {
                 else {
                     // is there a ghost nearby?
                     int g_idx;
-                    bool ok;
-                    find_closest_ghost(me, ghosts, g_idx, ok);
+                    string state;
+                    find_closest_ghost(me, ghosts, g_idx, state);
 
-                    if (ok) {
+                    if (state == "bustable") {
                         auto& ghost = ghosts[g_idx];
                         printf("BUST %d\n", ghost.id);
                     }
+                    else if (state == "too_close") {
+                        // TODO: should be more fast
+                        printf("MOVE %d %d %s\n", me.p.first, me.p.second, "too close");
+                    }
+                    else if (state == "nearby") {
+                        // TODO: should be more fast
+                        auto& ghost = ghosts[g_idx];
+                        printf("MOVE %d %d %s\n", ghost.p.first, ghost.p.second, "nearby ghost");
+                    }
                     else {
-                        // TODO: try to move a little to capture a ghost nearby
-
                         // go far to find ghosts
                         auto cur_goal = next_goals[i];
                         if (cur_goal == me.p) {
