@@ -137,16 +137,46 @@ int main() {
     else {
         base = P{W,H};
     }
-    
-    vector<P> next_goals {
+
+    vector<P> initial_goals;
+    if (bustersPerPlayer % 2) {
+        initial_goals = vector<P> {
+        P{W - BR1, BR1},  // top right
+        P{W - BR1, H - BR1}, // bottom right
+        P{BR1, H - BR1}, // bottom left
+        P{W - BR1, H / 2},
+        P{W / 2, H - BR1},
+        P{W * 3 / 4, H - BR1},
+        P{W / 4, H - BR1}
+        };
+    }
+    else {
+        initial_goals = vector<P> {
+        P{W - BR1, BR1},     // top right
+        P{BR1, H - BR1},     // bottom left
+        P{W - BR1, H * 3 / 4},
+        P{W * 3 / 4, H - BR1}
+        };
+    }
+
+    if (base.first == W) {
+        for(auto& g: initial_goals) {
+            g.first = W - g.first;
+            g.second = H - g.second;
+        }
+    }
+
+    vector<P> goals {
         P{BR1, BR1},
         P{W - BR1, BR1},
         P{W - BR1, H - BR1},
         P{BR1, H - BR1},
     };
-    vector<int> us_next_goal_idx(bustersPerPlayer);
+
+    
+    vector<P> next_goals(bustersPerPlayer);
     REP(i, bustersPerPlayer) {
-        us_next_goal_idx[i] = (i % SIZE(next_goals));
+        next_goals[i] = initial_goals[i];
     }
 
     vector<int> last_stun(bustersPerPlayer);
@@ -222,12 +252,11 @@ int main() {
                         // TODO: try to move a little to capture a ghost nearby
 
                         // go far to find ghosts
-                        auto cur_goal = next_goals[us_next_goal_idx[i]];
+                        auto cur_goal = next_goals[i];
                         if (cur_goal == me.p) {
-                            us_next_goal_idx[i] = (us_next_goal_idx[i] + 1) % SIZE(next_goals);
+                            next_goals[i] = goals[rand() % SIZE(goals)];
                         }
-                        cur_goal = next_goals[us_next_goal_idx[i]];
-                        
+                        cur_goal = next_goals[i];
                         printf("MOVE %d %d\n", cur_goal.first, cur_goal.second);
                     }
                 }
