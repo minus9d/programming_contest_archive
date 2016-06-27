@@ -74,6 +74,11 @@ void find_closest_ghost(const Entity& me, const vector<Entity>& ghosts,
             g_idx = i;
         }
     }
+
+    if (nearest > pow2(2000)) {
+        ok = false;
+    }
+
 }
 
 bool near_base(P& p, P& base) {
@@ -186,6 +191,7 @@ int main() {
         
         REP(i, SIZE(us)) {
             auto& me = us[i];
+            // have ghost
             if (me.state == 1) {
                 if (near_base(me.p, base)) {
                     printf("RELEASE\n");
@@ -194,38 +200,35 @@ int main() {
                     printf("MOVE %d %d\n", base.first, base.second);
                 }
             }
+            // have no ghost
             else {
+                // attempt to stun
                 int them_idx = 0;
                 if (stunnable(me, them, last_stun, time, them_idx)) {
                     printf("STUN %d\n", them[them_idx].id);
                     last_stun[me.id] = time;
                 }
-                else if (SIZE(ghosts) == 0) {
-                    auto cur_goal = next_goals[us_next_goal_idx[i]];
-                    if (cur_goal == me.p) {
-                        us_next_goal_idx[i] = (us_next_goal_idx[i] + 1) % SIZE(next_goals);
-                    }
-                    cur_goal = next_goals[us_next_goal_idx[i]];
-
-                    printf("MOVE %d %d\n", cur_goal.first, cur_goal.second);
-                    // if (base.first == 0) {
-                    //     printf("MOVE 16000 9000\n");
-                    // }
-                    // else {
-                    //     printf("MOVE 0 0\n");
-                    // }
-                }
                 else {
+                    // is there a ghost nearby?
                     int g_idx;
                     bool ok;
                     find_closest_ghost(me, ghosts, g_idx, ok);
-                    auto& ghost = ghosts[g_idx];
-    
+
                     if (ok) {
+                        auto& ghost = ghosts[g_idx];
                         printf("BUST %d\n", ghost.id);
                     }
                     else {
-                        printf("MOVE %d %d\n", ghost.p.first, ghost.p.second);
+                        // TODO: try to move a little to capture a ghost nearby
+
+                        // go far to find ghosts
+                        auto cur_goal = next_goals[us_next_goal_idx[i]];
+                        if (cur_goal == me.p) {
+                            us_next_goal_idx[i] = (us_next_goal_idx[i] + 1) % SIZE(next_goals);
+                        }
+                        cur_goal = next_goals[us_next_goal_idx[i]];
+                        
+                        printf("MOVE %d %d\n", cur_goal.first, cur_goal.second);
                     }
                 }
             }
