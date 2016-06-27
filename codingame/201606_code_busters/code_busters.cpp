@@ -26,6 +26,7 @@ const int H = 9000;
 const int BR1 = 900;
 const int BR2 = 1760;
 const int VR = 2200;
+const int VR_ROOT = VR * 0.7071 - 1;
 
 class Entity {
 public:
@@ -153,9 +154,9 @@ int main() {
     vector<P> initial_goals;
     if (bustersPerPlayer % 2) {
         initial_goals = vector<P> {
-        P{W - VR, VR},  // top right
-        P{W - VR, H - VR}, // bottom right
-        P{VR, H - VR}, // bottom left
+        P{W - VR_ROOT, VR_ROOT},  // top right
+        P{W - VR_ROOT, H - VR_ROOT}, // bottom right
+        P{VR_ROOT, H - VR_ROOT}, // bottom left
         P{W - VR, H / 2},
         P{W / 2, H - VR},
         P{W * 3 / 4, H - VR},
@@ -164,8 +165,8 @@ int main() {
     }
     else {
         initial_goals = vector<P> {
-        P{W - VR, VR},     // top right
-        P{VR, H - VR},     // bottom left
+        P{W - VR_ROOT, VR},     // top right
+        P{VR_ROOT, H - VR},     // bottom left
         P{W - VR, H * 3 / 4},
         P{W * 3 / 4, H - VR}
         };
