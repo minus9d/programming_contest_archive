@@ -270,12 +270,14 @@ int main() {
                     }
                     else {
                         // go far to find ghosts
-                        auto cur_goal = next_goals[i];
-                        if (cur_goal == me.p) {
-                            next_goals[i] = goals[rand() % SIZE(goals)];
-                        }
-                        cur_goal = next_goals[i];
-                        printf("MOVE %d %d\n", cur_goal.first, cur_goal.second);
+                        // auto cur_goal = next_goals[i];
+                        // if (cur_goal == me.p) {
+                        //     next_goals[i] = goals[rand() % SIZE(goals)];
+                        // }
+                        // cur_goal = next_goals[i];
+
+                        // random!
+                        printf("MOVE %d %d %s\n", rand() % W, rand() % H, "random walk");
                     }
                 }
             }
