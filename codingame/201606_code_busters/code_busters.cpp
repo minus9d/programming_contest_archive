@@ -21,7 +21,10 @@ typedef unsigned long long ull;
 
 
 using P = pair<int,int>;
-
+const int W = 16000;
+const int H = 9000;
+const int BR1 = 900;
+const int BR2 = 1760;
 
 class Entity {
 public:
@@ -49,7 +52,7 @@ ll dist2(const P& p1, const P& p2) {
 }
 
 bool can_bust(const ll d2) {
-    return (pow2(900) <= d2 && d2 <= pow2(1760));
+    return (pow2(BR1) <= d2 && d2 <= pow2(BR2));
 }
 
 void find_closest_ghost(const Entity& me, const vector<Entity>& ghosts,
@@ -127,15 +130,14 @@ int main() {
         base = P{0,0};
     }
     else {
-        base = P{16000,9000};
+        base = P{W,H};
     }
     
-    
     vector<P> next_goals {
-        P{900, 900},
-        P{16000 - 900, 900},
-        P{16000 - 900, 9000 - 900},
-        P{900, 9000 - 900}
+        P{BR1, BR1},
+        P{W - BR1, BR1},
+        P{W - BR1, H - BR1},
+        P{BR1, H - BR1},
     };
     vector<int> us_next_goal_idx(bustersPerPlayer);
     REP(i, bustersPerPlayer) {
