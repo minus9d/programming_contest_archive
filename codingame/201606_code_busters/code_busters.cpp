@@ -25,6 +25,7 @@ const int W = 16000;
 const int H = 9000;
 const int BR1 = 900;
 const int BR2 = 1760;
+const int VR = 2200;
 
 class Entity {
 public:
@@ -152,21 +153,21 @@ int main() {
     vector<P> initial_goals;
     if (bustersPerPlayer % 2) {
         initial_goals = vector<P> {
-        P{W - BR1, BR1},  // top right
-        P{W - BR1, H - BR1}, // bottom right
-        P{BR1, H - BR1}, // bottom left
-        P{W - BR1, H / 2},
-        P{W / 2, H - BR1},
-        P{W * 3 / 4, H - BR1},
-        P{W / 4, H - BR1}
+        P{W - VR, VR},  // top right
+        P{W - VR, H - VR}, // bottom right
+        P{VR, H - VR}, // bottom left
+        P{W - VR, H / 2},
+        P{W / 2, H - VR},
+        P{W * 3 / 4, H - VR},
+        P{W / 4, H - VR}
         };
     }
     else {
         initial_goals = vector<P> {
-        P{W - BR1, BR1},     // top right
-        P{BR1, H - BR1},     // bottom left
-        P{W - BR1, H * 3 / 4},
-        P{W * 3 / 4, H - BR1}
+        P{W - VR, VR},     // top right
+        P{VR, H - VR},     // bottom left
+        P{W - VR, H * 3 / 4},
+        P{W * 3 / 4, H - VR}
         };
     }
 
@@ -176,14 +177,6 @@ int main() {
             g.second = H - g.second;
         }
     }
-
-    vector<P> goals {
-        P{BR1, BR1},
-        P{W - BR1, BR1},
-        P{W - BR1, H - BR1},
-        P{BR1, H - BR1},
-    };
-
     
     vector<P> next_goals(bustersPerPlayer);
     REP(i, bustersPerPlayer) {
@@ -270,14 +263,28 @@ int main() {
                     }
                     else {
                         // go far to find ghosts
-                        // auto cur_goal = next_goals[i];
-                        // if (cur_goal == me.p) {
-                        //     next_goals[i] = goals[rand() % SIZE(goals)];
-                        // }
-                        // cur_goal = next_goals[i];
-
-                        // random!
-                        printf("MOVE %d %d %s\n", rand() % W, rand() % H, "random walk");
+                        if (next_goals[i] == me.p) {
+                            // random!
+                            // TODO: point on edge
+                            next_goals[i] = P{rand() % W, rand() % H};
+                            if (rand() % 2) {
+                                if (rand() % 2) {
+                                    next_goals[i].first = 0 + VR;
+                                }
+                                else {
+                                    next_goals[i].first = W - VR;
+                                }
+                            }
+                            else {
+                                if (rand() % 2) {
+                                    next_goals[i].second = 0 + VR;
+                                }
+                                else {
+                                    next_goals[i].second = H - VR;
+                                }
+                            }
+                        }
+                        printf("MOVE %d %d\n", next_goals[i].first, next_goals[i].second);
                     }
                 }
             }
