@@ -153,9 +153,10 @@ int main() {
 
     vector<P> initial_goals;
     if (bustersPerPlayer % 2) {
+        double rate = 0.7;
         initial_goals = vector<P> {
         P{W - VR_ROOT, VR_ROOT},  // top right
-        P{W - VR_ROOT, H - VR_ROOT}, // bottom right
+        P{rate*(W - VR_ROOT), rate*(H - VR_ROOT)}, // bottom right
         P{VR_ROOT, H - VR_ROOT}, // bottom left
         P{W - VR, H / 2},
         P{W / 2, H - VR},
@@ -164,11 +165,12 @@ int main() {
         };
     }
     else {
+        double rate = 0.8;
         initial_goals = vector<P> {
         P{W - VR_ROOT, VR},     // top right
         P{VR_ROOT, H - VR},     // bottom left
-        P{W - VR, H * 3 / 4},
-        P{W * 3 / 4, H - VR}
+        P{rate*(W - VR), rate*(H * 3 / 4)},
+        P{rate*(W * 3 / 4), rate*(H - VR)}
         };
     }
 
