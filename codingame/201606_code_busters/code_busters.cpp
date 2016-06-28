@@ -29,6 +29,8 @@ const int BR1 = 900;
 const int BR2 = 1760;
 const int VR = 2200;
 const int VR_ROOT = VR * 0.7071 - 1;
+P our_base;
+P their_base;
 
 class Entity {
 public:
@@ -96,8 +98,8 @@ void find_closest_ghost(const Entity& me, const vector<Entity>& ghosts,
     }
 }
 
-bool near_base(P& p, P& base) {
-    auto d2 = dist2(p, base);
+bool near_our_base(P& p) {
+    auto d2 = dist2(p, our_base);
     return d2 <= pow2(1600);
 }
 
@@ -141,6 +143,36 @@ bool stunnable(const Entity& me, const vector<Entity>& them,
     }
 }
 
+P pick_random_pos() {
+    while (true) {
+        P ret = P{rand() % W, rand() % H};
+        if (rand() % 2) {
+            if (rand() % 2) {
+                ret.first = 0 + VR;
+            }
+            else {
+                ret.first = W - VR;
+            }
+        }
+        else {
+            if (rand() % 2) {
+                ret.second = 0 + VR;
+            }
+            else {
+                ret.second = H - VR;
+            }
+        }
+        
+        // avoid nearby bases
+        if (dist2(ret, our_base) < pow2(4000)
+            || dist2(ret, their_base) < pow2(4000)) {
+            continue;
+        }
+        return ret;
+    }
+}
+
+
 /**
  * Send your busters out into the fog to trap ghosts and bring them home!
  **/
@@ -152,12 +184,13 @@ int main() {
     int myTeamId; // if this is 0, your base is on the top left of the map, if it is one, on the bottom right
     cin >> myTeamId; cin.ignore();
 
-    P base;
     if (myTeamId == 0) {
-        base = P{0,0};
+        our_base = P{0,0};
+        their_base = P{W,H};
     }
     else {
-        base = P{W,H};
+        our_base = P{W,H};
+        their_base = P{0,0};
     }
 
     vector<P> initial_goals;
@@ -185,7 +218,7 @@ int main() {
         };
     }
 
-    if (base.first == W) {
+    if (our_base.first == W) {
         for(auto& g: initial_goals) {
             g.first = W - g.first;
             g.second = H - g.second;
@@ -244,12 +277,12 @@ int main() {
             auto& me = us[i];
             // have ghost
             if (me.state == 1) {
-                if (near_base(me.p, base)) {
+                if (near_our_base(me.p)) {
                     printf("RELEASE %s\n", "release");
                 }
                 else {
                     printf("MOVE %d %d %s\n",
-                           base.first, base.second, "go home");
+                           our_base.first, our_base.second, "go home");
                 }
             }
             // have no ghost
@@ -287,23 +320,7 @@ int main() {
                         if (next_goals[i] == me.p) {
                             // random!
                             // TODO: point on edge
-                            next_goals[i] = P{rand() % W, rand() % H};
-                            if (rand() % 2) {
-                                if (rand() % 2) {
-                                    next_goals[i].first = 0 + VR;
-                                }
-                                else {
-                                    next_goals[i].first = W - VR;
-                                }
-                            }
-                            else {
-                                if (rand() % 2) {
-                                    next_goals[i].second = 0 + VR;
-                                }
-                                else {
-                                    next_goals[i].second = H - VR;
-                                }
-                            }
+                            next_goals[i] = pick_random_pos();
                         }
                         printf("MOVE %d %d\n", next_goals[i].first, next_goals[i].second);
                     }
