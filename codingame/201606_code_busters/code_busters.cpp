@@ -102,25 +102,32 @@ bool near_base(P& p, P& base) {
 }
 
 bool stunnable(const Entity& me, const vector<Entity>& them,
-               const vector<int>& last_stun, const int time,
+               const vector<int>& last_stun,
+               const set<int>& stunned_them_idx,
+               const int time,
                int& them_idx)
 {
     int kept = -1;
 
     REP(i, SIZE(them)) {
-        for(auto& him : them) {
-            auto d2 = dist2(me.p, him.p);
-            if (d2 <= pow2(1760)
-                && last_stun[me.id] + 20 <= time
-                ) {
-                if (him.state == 2) continue;
-                else if (him.state == 1) {
-                    them_idx = i;
-                    return true;
-                }
-                else  {
-                    kept = i;
-                }
+        auto& him = them[i];
+
+        // avoid to stun the same enemy
+        if (stunned_them_idx.count(i)) continue;
+        // avoid to stun the enemy already stunned
+        if (him.state == 2) continue;
+
+        auto d2 = dist2(me.p, him.p);
+        if (d2 <= pow2(1760)
+            && last_stun[me.id] + 20 <= time
+            ) {
+            if (him.state == 1 || him.state == 3) {
+                them_idx = i;
+                return true;
+            }
+            // idle or moving buster has low priority
+            else  {
+                kept = i;
             }
         }
     }
@@ -202,6 +209,9 @@ int main() {
         vector<Entity> them;
         vector<Entity> ghosts;
 
+        set<int> stunned_them_idx;
+
+
         int entities; // the number of busters and ghosts visible to you
         cin >> entities; cin.ignore();
         for (int i = 0; i < entities; i++) {
@@ -246,11 +256,12 @@ int main() {
             else {
                 // attempt to stun
                 int them_idx = 0;
-                if (stunnable(me, them, last_stun, time, them_idx)) {
+                if (stunnable(me, them, last_stun, stunned_them_idx, time, them_idx)) {
                     stringstream sout;
                     sout << "stun " << them[them_idx].id;
                     printf("STUN %d %s\n", them[them_idx].id, sout.str().c_str());
                     last_stun[me.id] = time;
+                    stunned_them_idx.insert(them_idx);
                 }
                 else {
                     // is there a ghost nearby?
