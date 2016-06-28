@@ -4,6 +4,8 @@
 #include <set>
 #include <cstdio>
 #include <cstdlib>
+#include <sstream>
+#include <string>
 
 using namespace std;
 typedef unsigned int uint;
@@ -233,10 +235,11 @@ int main() {
             // have ghost
             if (me.state == 1) {
                 if (near_base(me.p, base)) {
-                    printf("RELEASE\n");
+                    printf("RELEASE %s\n", "release");
                 }
                 else {
-                    printf("MOVE %d %d\n", base.first, base.second);
+                    printf("MOVE %d %d %s\n",
+                           base.first, base.second, "go home");
                 }
             }
             // have no ghost
@@ -244,7 +247,9 @@ int main() {
                 // attempt to stun
                 int them_idx = 0;
                 if (stunnable(me, them, last_stun, time, them_idx)) {
-                    printf("STUN %d\n", them[them_idx].id);
+                    stringstream sout;
+                    sout << "stun " << them[them_idx].id;
+                    printf("STUN %d %s\n", them[them_idx].id, sout.str().c_str());
                     last_stun[me.id] = time;
                 }
                 else {
