@@ -1,11 +1,12 @@
-#include <iostream>
-#include <vector>
-#include <map>
-#include <set>
+#include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <iostream>
+#include <map>
+#include <set>
 #include <sstream>
 #include <string>
+#include <vector>
 
 using namespace std;
 typedef unsigned int uint;
@@ -173,6 +174,43 @@ P find_nearby_unvisited_pos(const P& cur) {
     return ret;
 }
 
+P go_to_pick_ghost(const P& cur, const P& g) {
+    double best_distance = (BR1 + BR2) / 2.0;
+
+    if (cur == g) {
+        // trivial corner cases:
+        if (g == our_base) {
+            return P{best_distance, 0};
+        }
+        if (g == their_base) {
+            return P{W - best_distance, 0};
+        }
+
+        if (dist2(cur, our_base) > pow2(best_distance)) {
+            P ret = go_to_pick_ghost(our_base, g);
+            return ret;
+        }
+        else {
+            P ret = go_to_pick_ghost(their_base, g);
+            return ret;
+        }
+    }
+
+    // vector from ghost to buster
+    double vec_x = cur.first - g.first;
+    double vec_y = cur.second - g.second;
+    double len = sqrt( pow2(vec_x) + pow2(vec_y) );
+    vec_x /= len;
+    vec_y /= len;
+
+    P best_pos {
+        g.first + vec_x * best_distance,
+        g.second + vec_y * best_distance
+    };
+
+    return best_pos;
+}
+
 P pick_random_pos(const P& cur) {
 
     // TODO: there is a bug
@@ -271,6 +309,7 @@ int main() {
     vector<int> last_stun(bustersPerPlayer);
 
     int time = 0;
+    int captured = 0;
 
     // game loop
     while (1) {
@@ -306,7 +345,9 @@ int main() {
         }
         
         cerr << "ghost num:" << SIZE(ghosts) << endl;
-        for(auto& g: ghosts) cerr << g.id << ",";
+        for(auto& g: ghosts) {
+            cerr << "  " << g.id << "(" << g.p.first << "," << g.p.second << ")" << endl;
+        }
         cerr << endl;
 
         REP(i, SIZE(us)) {
@@ -319,6 +360,7 @@ int main() {
             if (me.state == 1) {
                 if (near_our_base(me.p)) {
                     printf("RELEASE %s\n", "release");
+                    ++captured;
                 }
                 else {
                     printf("MOVE %d %d %s\n",
@@ -346,14 +388,10 @@ int main() {
                         auto& ghost = ghosts[g_idx];
                         printf("BUST %d\n", ghost.id);
                     }
-                    else if (state == "too_close") {
-                        // TODO: should be more fast
-                        printf("MOVE %d %d %s\n", me.p.first, me.p.second, "too close");
-                    }
-                    else if (state == "nearby") {
-                        // TODO: should be more fast
+                    else if (state == "too_close" || state == "nearby") {
                         auto& ghost = ghosts[g_idx];
-                        printf("MOVE %d %d %s\n", ghost.p.first, ghost.p.second, "nearby ghost");
+                        auto pos = go_to_pick_ghost(me.p, ghost.p);
+                        printf("MOVE %d %d %s\n", pos.first, pos.second, state.c_str());
                     }
                     else {
                         // go far to find ghosts
