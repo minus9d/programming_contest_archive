@@ -394,12 +394,29 @@ int main() {
                         printf("MOVE %d %d %s\n", pos.first, pos.second, state.c_str());
                     }
                     else {
-                        // go far to find ghosts
-                        if (next_goals[i] == me.p) {
-                            // random!
-                            next_goals[i] = pick_random_pos(me.p);
+                        // if almost ghosts are already captured
+                        if (captured > ghostCount * 0.4 && SIZE(ghosts) > 0) {
+                            ll best = 1e15;
+                            P goal;
+                            for(auto& g: ghosts) {
+                                auto d2 = dist2(g.p, me.p);
+                                if (d2 < best) {
+                                    best = d2;
+                                    goal = g.p;
+                                }
+                            }
+                            auto pos = go_to_pick_ghost(me.p, goal);
+                            printf("MOVE %d %d %s\n", pos.first, pos.second,
+                                   "go to help");
                         }
-                        printf("MOVE %d %d\n", next_goals[i].first, next_goals[i].second);
+                        else {
+                            // go far to find ghosts
+                            if (next_goals[i] == me.p) {
+                                // random!
+                                next_goals[i] = pick_random_pos(me.p);
+                            }
+                            printf("MOVE %d %d\n", next_goals[i].first, next_goals[i].second);
+                        }
                     }
                 }
             }
