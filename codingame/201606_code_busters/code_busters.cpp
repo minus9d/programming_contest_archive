@@ -32,6 +32,9 @@ const int VR_ROOT = VR * 0.7071 - 1;
 P our_base;
 P their_base;
 
+const int cell_size = 800;
+vector<vector<char>> visited;
+
 class Entity {
 public:
     int id;
@@ -143,7 +146,41 @@ bool stunnable(const Entity& me, const vector<Entity>& them,
     }
 }
 
-P pick_random_pos() {
+P find_nearby_unvisited_pos(const P& cur) {
+    int h_num = SIZE(visited);
+    int w_num = SIZE(visited[0]);
+
+    ll shortest = 1e15;
+    P ret;
+    REP(h, h_num) {
+        REP(w, w_num) {
+            if (!visited[h][w]) {
+                P cell_center{
+                    h * cell_size + cell_size / 2,
+                    w * cell_size + cell_size / 2
+                        };
+                auto d2 = dist2(cell_center, cur);
+                if (d2 < shortest) {
+                    shortest = d2;
+                    ret = cell_center;
+                }
+            }
+        }
+    }
+    if (shortest == 1e15) {
+        ret = P{-1,-1};
+    }
+    return ret;
+}
+
+P pick_random_pos(const P& cur) {
+
+    // TODO: there is a bug
+    // auto nearby = find_nearby_unvisited_pos(cur);
+    // if (nearby != P{-1,-1}) {
+    //     return nearby;
+    // }
+
     while (true) {
         P ret = P{rand() % W, rand() % H};
         if (rand() % 2) {
@@ -184,6 +221,9 @@ int main() {
     int myTeamId; // if this is 0, your base is on the top left of the map, if it is one, on the bottom right
     cin >> myTeamId; cin.ignore();
 
+
+    // initialize;
+    visited = vector<vector<char>>(H / cell_size + 1, vector<char>(W / cell_size));
     if (myTeamId == 0) {
         our_base = P{0,0};
         their_base = P{W,H};
@@ -194,8 +234,6 @@ int main() {
     }
 
     vector<P> initial_goals;
-    
-
     double rate1 = 0.7;
     double rate2 = 0.8;
     if (bustersPerPlayer % 2) {
@@ -270,12 +308,14 @@ int main() {
         cerr << "ghost num:" << SIZE(ghosts) << endl;
         for(auto& g: ghosts) cerr << g.id << ",";
         cerr << endl;
-        
-        
-        
+
         REP(i, SIZE(us)) {
             auto& me = us[i];
-            // have ghost
+
+            // check visited cells
+            ++visited[me.p.second / cell_size][me.p.first / cell_size];
+
+            // have a ghost
             if (me.state == 1) {
                 if (near_our_base(me.p)) {
                     printf("RELEASE %s\n", "release");
@@ -319,8 +359,7 @@ int main() {
                         // go far to find ghosts
                         if (next_goals[i] == me.p) {
                             // random!
-                            // TODO: point on edge
-                            next_goals[i] = pick_random_pos();
+                            next_goals[i] = pick_random_pos(me.p);
                         }
                         printf("MOVE %d %d\n", next_goals[i].first, next_goals[i].second);
                     }
