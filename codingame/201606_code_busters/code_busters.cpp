@@ -223,18 +223,18 @@ P pick_random_pos(const P& cur) {
         P ret = P{rand() % W, rand() % H};
         if (rand() % 2) {
             if (rand() % 2) {
-                ret.first = 0 + VR;
+                ret.first = 0 + VR / 2;
             }
             else {
-                ret.first = W - VR;
+                ret.first = W - VR / 2;
             }
         }
         else {
             if (rand() % 2) {
-                ret.second = 0 + VR;
+                ret.second = 0 + VR / 2;
             }
             else {
-                ret.second = H - VR;
+                ret.second = H - VR / 2;
             }
         }
         
