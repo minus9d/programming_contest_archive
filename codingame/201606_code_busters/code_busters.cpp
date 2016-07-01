@@ -52,6 +52,71 @@ public:
         };
 };
 
+void input(vector<Entity>& us, vector<Entity>& them, vector<Entity>& ghosts,
+           const int myTeamId) {
+    int entities; // the number of busters and ghosts visible to you
+    cin >> entities; cin.ignore();
+    for (int i = 0; i < entities; i++) {
+        int entityId; // buster id or ghost id
+        int x;
+        int y; // position of this buster / ghost
+        int entityType; // the team id if it is a buster, -1 if it is a ghost.
+        int state; // For busters: 0=idle, 1=carrying a ghost.
+        int value; // For busters: Ghost id being carried. For ghosts: number of busters attempting to trap this ghost.
+        cin >> entityId >> x >> y >> entityType >> state >> value; cin.ignore();
+        Entity e{ entityId, x, y, state, value };
+        if (entityType == myTeamId) {
+            us.push_back(e);
+        }
+        else if (entityType == -1) {
+            ghosts.push_back(e);
+        }
+        else {
+            them.push_back(e);
+        }
+    }
+}
+
+void print_buster(const Entity& b) {
+    cerr << "  " << b.id << "(" << b.p.first << "," << b.p.second << ") s:" << b.state;
+    if (b.state == 1) {
+        cerr << "  carrying:" << b.value;
+    }
+    else if (b.state == 3) {
+        cerr << "  trapping:" << b.value;
+    }
+    else if (b.state == 2) {
+        cerr << "  can_move_after:" << b.value;
+    }
+    else {
+        cerr << "  v:" << b.value;
+    }
+    cerr << endl;
+}
+
+void print_input_data(vector<Entity>& us, vector<Entity>& them, vector<Entity>& ghosts) {
+    cerr << "ghost num:" << SIZE(ghosts) << endl;
+    for(auto& g: ghosts) {
+        cerr << "  " << g.id << "(" << g.p.first << "," << g.p.second << ") attaacked_by:" << g.value << endl;
+    }
+    cerr << endl;
+
+    cerr << "us num:" << SIZE(us) << endl;
+    for(auto& u: us) {
+        print_buster(u);
+    }
+    cerr << endl;
+
+    cerr << "them num:" << SIZE(them) << endl;
+    for(auto& t: them) {
+        print_buster(t);
+    }
+    cerr << endl;
+}
+           
+           
+
+
 ll pow2(ll x) {
     return x * x;
 }
@@ -259,7 +324,6 @@ int main() {
     int myTeamId; // if this is 0, your base is on the top left of the map, if it is one, on the bottom right
     cin >> myTeamId; cin.ignore();
 
-
     // initialize;
     visited = vector<vector<char>>(H / cell_size + 1, vector<char>(W / cell_size));
     if (myTeamId == 0) {
@@ -318,38 +382,11 @@ int main() {
         vector<Entity> us;
         vector<Entity> them;
         vector<Entity> ghosts;
+        input(us, them, ghosts, myTeamId);
+        print_input_data(us, them, ghosts);
 
         set<int> stunned_them_idx;
-
-
-        int entities; // the number of busters and ghosts visible to you
-        cin >> entities; cin.ignore();
-        for (int i = 0; i < entities; i++) {
-            int entityId; // buster id or ghost id
-            int x;
-            int y; // position of this buster / ghost
-            int entityType; // the team id if it is a buster, -1 if it is a ghost.
-            int state; // For busters: 0=idle, 1=carrying a ghost.
-            int value; // For busters: Ghost id being carried. For ghosts: number of busters attempting to trap this ghost.
-            cin >> entityId >> x >> y >> entityType >> state >> value; cin.ignore();
-            Entity e{ entityId, x, y, state, value };
-            if (entityType == myTeamId) {
-                us.push_back(e);
-            }
-            else if (entityType == -1) {
-                ghosts.push_back(e);
-            }
-            else {
-                them.push_back(e);
-            }
-        }
         
-        cerr << "ghost num:" << SIZE(ghosts) << endl;
-        for(auto& g: ghosts) {
-            cerr << "  " << g.id << "(" << g.p.first << "," << g.p.second << ")" << endl;
-        }
-        cerr << endl;
-
         REP(i, SIZE(us)) {
             auto& me = us[i];
 
