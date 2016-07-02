@@ -22,6 +22,13 @@ typedef unsigned long long ull;
 #define mp make_pair
 #define mt make_tuple
 
+#define IDLE 0
+#define CARRYING 1
+#define STUNNED 2
+#define TRAPPING 3
+#define X first
+#define Y second
+
 
 using P = pair<int,int>;
 const int W = 16000;
@@ -78,14 +85,14 @@ void input(vector<Entity>& us, vector<Entity>& them, vector<Entity>& ghosts,
 }
 
 void print_buster(const Entity& b) {
-    cerr << "  " << b.id << "(" << b.p.first << "," << b.p.second << ") s:" << b.state;
-    if (b.state == 1) {
+    cerr << "  " << b.id << "(" << b.p.X << "," << b.p.Y << ") s:" << b.state;
+    if (b.state == CARRYING) {
         cerr << "  carrying:" << b.value;
     }
-    else if (b.state == 3) {
+    else if (b.state == TRAPPING) {
         cerr << "  trapping:" << b.value;
     }
-    else if (b.state == 2) {
+    else if (b.state == STUNNED) {
         cerr << "  can_move_after:" << b.value;
     }
     else {
@@ -97,7 +104,7 @@ void print_buster(const Entity& b) {
 void print_input_data(vector<Entity>& us, vector<Entity>& them, vector<Entity>& ghosts) {
     cerr << "ghost num:" << SIZE(ghosts) << endl;
     for(auto& g: ghosts) {
-        cerr << "  " << g.id << "(" << g.p.first << "," << g.p.second << ") attaacked_by:" << g.value << endl;
+        cerr << "  " << g.id << "(" << g.p.X << "," << g.p.Y << ") attaacked_by:" << g.value << endl;
     }
     cerr << endl;
 
@@ -122,8 +129,8 @@ ll pow2(ll x) {
 }
 
 ll dist2(const P& p1, const P& p2) {
-    return pow2(p1.first - p2.first)
-        + pow2(p1.second - p2.second);
+    return pow2(p1.X - p2.X)
+        + pow2(p1.Y - p2.Y);
 }
 
 bool can_bust(const ll d2) {
@@ -186,13 +193,13 @@ bool stunnable(const Entity& me, const vector<Entity>& them,
         // avoid to stun the same enemy
         if (stunned_them_idx.count(i)) continue;
         // avoid to stun the enemy already stunned
-        if (him.state == 2) continue;
+        if (him.state == STUNNED) continue;
 
         auto d2 = dist2(me.p, him.p);
         if (d2 <= pow2(1760)
             && last_stun[me.id] + 20 <= time
             ) {
-            if (him.state == 1 || him.state == 3) {
+            if (him.state == CARRYING || him.state == TRAPPING) {
                 them_idx = i;
                 return true;
             }
@@ -262,15 +269,15 @@ P go_to_pick_ghost(const P& cur, const P& g) {
     }
 
     // vector from ghost to buster
-    double vec_x = cur.first - g.first;
-    double vec_y = cur.second - g.second;
+    double vec_x = cur.X - g.X;
+    double vec_y = cur.Y - g.Y;
     double len = sqrt( pow2(vec_x) + pow2(vec_y) );
     vec_x /= len;
     vec_y /= len;
 
     P best_pos {
-        g.first + vec_x * best_distance,
-        g.second + vec_y * best_distance
+        g.X + vec_x * best_distance,
+        g.Y + vec_y * best_distance
     };
 
     return best_pos;
@@ -288,18 +295,18 @@ P pick_random_pos(const P& cur) {
         P ret = P{rand() % W, rand() % H};
         if (rand() % 2) {
             if (rand() % 2) {
-                ret.first = 0 + VR / 2;
+                ret.X = 0 + VR / 2;
             }
             else {
-                ret.first = W - VR / 2;
+                ret.X = W - VR / 2;
             }
         }
         else {
             if (rand() % 2) {
-                ret.second = 0 + VR / 2;
+                ret.Y = 0 + VR / 2;
             }
             else {
-                ret.second = H - VR / 2;
+                ret.Y = H - VR / 2;
             }
         }
         
@@ -358,10 +365,10 @@ int main() {
         };
     }
 
-    if (our_base.first == W) {
+    if (our_base.X == W) {
         for(auto& g: initial_goals) {
-            g.first = W - g.first;
-            g.second = H - g.second;
+            g.X = W - g.X;
+            g.Y = H - g.Y;
         }
     }
     
@@ -371,6 +378,7 @@ int main() {
     }
 
     vector<int> last_stun(bustersPerPlayer);
+    map<int, P> seen_ghosts;
 
     int time = 0;
     int captured = 0;
@@ -386,12 +394,17 @@ int main() {
         print_input_data(us, them, ghosts);
 
         set<int> stunned_them_idx;
+
+        for (auto& g: ghosts) {
+            auto id = g.id;
+            seen_ghosts[id] = g.p;
+        }
         
         REP(i, SIZE(us)) {
             auto& me = us[i];
 
             // check visited cells
-            ++visited[me.p.second / cell_size][me.p.first / cell_size];
+            ++visited[me.p.Y / cell_size][me.p.X / cell_size];
 
             // attempt to stun
             int them_idx = 0;
@@ -403,14 +416,14 @@ int main() {
                 stunned_them_idx.insert(them_idx);
             }
             // have a ghost
-            else if (me.state == 1) {
+            else if (me.state == CARRYING) {
                 if (near_our_base(me.p)) {
                     printf("RELEASE %s\n", "release");
                     ++captured;
                 }
                 else {
                     printf("MOVE %d %d %s\n",
-                           our_base.first, our_base.second, "go home");
+                           our_base.X, our_base.Y, "go home");
                 }
             }
             // have no ghost
@@ -427,7 +440,7 @@ int main() {
                 else if (state == "too_close" || state == "nearby") {
                     auto& ghost = ghosts[g_idx];
                     auto pos = go_to_pick_ghost(me.p, ghost.p);
-                    printf("MOVE %d %d %s\n", pos.first, pos.second, state.c_str());
+                    printf("MOVE %d %d %s\n", pos.X, pos.Y, state.c_str());
                 }
                 else {
                     // if almost ghosts are already captured
@@ -442,7 +455,7 @@ int main() {
                             }
                         }
                         auto pos = go_to_pick_ghost(me.p, goal);
-                        printf("MOVE %d %d %s\n", pos.first, pos.second,
+                        printf("MOVE %d %d %s\n", pos.X, pos.Y,
                                "go to help");
                     }
                     else {
@@ -451,7 +464,7 @@ int main() {
                             // random!
                             next_goals[i] = pick_random_pos(me.p);
                         }
-                        printf("MOVE %d %d\n", next_goals[i].first, next_goals[i].second);
+                        printf("MOVE %d %d\n", next_goals[i].X, next_goals[i].Y);
                     }
                 }
             }
