@@ -40,11 +40,21 @@ const int VR_ROOT = VR * 0.7071 - 1;
 P our_base;
 P their_base;
 
+
+const int cell_size = 800;
+
 int turn = 0;
 int captured = 0;
 
-const int cell_size = 800;
+int bustersPerPlayer; // the amount of busters you control
+int ghostCount; // the amount of ghosts on the map
+int myTeamId; // if this is 0, your base is on the top left of the map, if it is one, on the bottom right
+
 vector<vector<char>> visited;
+vector<int> stun_used_turn;
+map<int, P> seen_ghosts;
+vector<P> next_goals;
+
 
 class Entity {
 public:
@@ -124,7 +134,42 @@ void print_input_data(vector<Entity>& us, vector<Entity>& them, vector<Entity>& 
     cerr << endl;
 }
            
-           
+void setup_next_goals() {
+    vector<P> initial_goals;
+    double rate1 = 0.7;
+    double rate2 = 0.8;
+    if (bustersPerPlayer % 2) {
+        initial_goals = vector<P> {
+        P{rate2*(W - VR_ROOT), VR_ROOT},  // top right
+        P{rate1*(W - VR_ROOT), rate1*(H - VR_ROOT)}, // bottom right
+        P{VR_ROOT, H - VR_ROOT}, // bottom left
+        P{W - VR, H / 2},
+        P{W / 2, H - VR},
+        P{W * 3 / 4, H - VR},
+        P{W / 4, H - VR}
+        };
+    }
+    else {
+        initial_goals = vector<P> {
+        P{rate2 * (W - VR_ROOT), VR},     // top right
+        P{VR_ROOT, H - VR},     // bottom left
+        P{rate2*(W - VR), rate2*(H * 3 / 4)},
+        P{rate2*(W * 3 / 4), rate2*(H - VR)}
+        };
+    }
+
+    if (our_base.X == W) {
+        for(auto& g: initial_goals) {
+            g.X = W - g.X;
+            g.Y = H - g.Y;
+        }
+    }
+
+    next_goals.resize(bustersPerPlayer);
+    REP(i, bustersPerPlayer) {
+        next_goals[i] = initial_goals[i];
+    }
+}           
 
 
 ll pow2(ll x) {
@@ -326,11 +371,8 @@ P pick_random_pos(const P& cur) {
  * Send your busters out into the fog to trap ghosts and bring them home!
  **/
 int main() {
-    int bustersPerPlayer; // the amount of busters you control
     cin >> bustersPerPlayer; cin.ignore();
-    int ghostCount; // the amount of ghosts on the map
     cin >> ghostCount; cin.ignore();
-    int myTeamId; // if this is 0, your base is on the top left of the map, if it is one, on the bottom right
     cin >> myTeamId; cin.ignore();
 
     // initialize;
@@ -344,43 +386,10 @@ int main() {
         their_base = P{0,0};
     }
 
-    vector<P> initial_goals;
-    double rate1 = 0.7;
-    double rate2 = 0.8;
-    if (bustersPerPlayer % 2) {
-        initial_goals = vector<P> {
-        P{rate2*(W - VR_ROOT), VR_ROOT},  // top right
-        P{rate1*(W - VR_ROOT), rate1*(H - VR_ROOT)}, // bottom right
-        P{VR_ROOT, H - VR_ROOT}, // bottom left
-        P{W - VR, H / 2},
-        P{W / 2, H - VR},
-        P{W * 3 / 4, H - VR},
-        P{W / 4, H - VR}
-        };
-    }
-    else {
-        initial_goals = vector<P> {
-        P{rate2 * (W - VR_ROOT), VR},     // top right
-        P{VR_ROOT, H - VR},     // bottom left
-        P{rate2*(W - VR), rate2*(H * 3 / 4)},
-        P{rate2*(W * 3 / 4), rate2*(H - VR)}
-        };
-    }
 
-    if (our_base.X == W) {
-        for(auto& g: initial_goals) {
-            g.X = W - g.X;
-            g.Y = H - g.Y;
-        }
-    }
-    
-    vector<P> next_goals(bustersPerPlayer);
-    REP(i, bustersPerPlayer) {
-        next_goals[i] = initial_goals[i];
-    }
+    setup_next_goals();
 
-    vector<int> stun_used_turn(bustersPerPlayer);
-    map<int, P> seen_ghosts;
+    stun_used_turn.resize(bustersPerPlayer);
 
     // game loop
     while (1) {
