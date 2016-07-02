@@ -180,7 +180,7 @@ bool near_our_base(P& p) {
 }
 
 bool stunnable(const Entity& me, const vector<Entity>& them,
-               const vector<int>& last_stun,
+               const vector<int>& stun_used_time,
                const set<int>& stunned_them_idx,
                const int time,
                int& them_idx)
@@ -197,7 +197,7 @@ bool stunnable(const Entity& me, const vector<Entity>& them,
 
         auto d2 = dist2(me.p, him.p);
         if (d2 <= pow2(1760)
-            && last_stun[me.id] + 20 <= time
+            && stun_used_time[me.id] + 20 <= time
             ) {
             if (him.state == CARRYING || him.state == TRAPPING) {
                 them_idx = i;
@@ -377,7 +377,7 @@ int main() {
         next_goals[i] = initial_goals[i];
     }
 
-    vector<int> last_stun(bustersPerPlayer);
+    vector<int> stun_used_time(bustersPerPlayer);
     map<int, P> seen_ghosts;
 
     int time = 0;
@@ -408,11 +408,11 @@ int main() {
 
             // attempt to stun
             int them_idx = 0;
-            if (stunnable(me, them, last_stun, stunned_them_idx, time, them_idx)) {
+            if (stunnable(me, them, stun_used_time, stunned_them_idx, time, them_idx)) {
                 stringstream sout;
                 sout << "stun " << them[them_idx].id;
                 printf("STUN %d %s\n", them[them_idx].id, sout.str().c_str());
-                last_stun[me.id] = time;
+                stun_used_time[me.id] = time;
                 stunned_them_idx.insert(them_idx);
             }
             // have a ghost
