@@ -417,6 +417,7 @@ int main() {
             }
             // have a ghost
             else if (me.state == CARRYING) {
+                seen_ghosts.erase(me.value);
                 if (near_our_base(me.p)) {
                     printf("RELEASE %s\n", "release");
                     ++captured;
@@ -436,35 +437,63 @@ int main() {
                 if (state == "bustable") {
                     auto& ghost = ghosts[g_idx];
                     printf("BUST %d\n", ghost.id);
+                    seen_ghosts.erase(ghost.id);
                 }
                 else if (state == "too_close" || state == "nearby") {
                     auto& ghost = ghosts[g_idx];
                     auto pos = go_to_pick_ghost(me.p, ghost.p);
                     printf("MOVE %d %d %s\n", pos.X, pos.Y, state.c_str());
+                    seen_ghosts.erase(ghost.id);
                 }
                 else {
                     // if almost ghosts are already captured
                     if (captured > ghostCount * 0.4 && SIZE(ghosts) > 0) {
                         ll best = 1e15;
                         P goal;
+                        int id;
                         for(auto& g: ghosts) {
                             auto d2 = dist2(g.p, me.p);
                             if (d2 < best) {
                                 best = d2;
                                 goal = g.p;
+                                id = g.id;
                             }
                         }
                         auto pos = go_to_pick_ghost(me.p, goal);
                         printf("MOVE %d %d %s\n", pos.X, pos.Y,
                                "go to help");
+                        seen_ghosts.erase(id);
                     }
                     else {
-                        // go far to find ghosts
-                        if (next_goals[i] == me.p) {
-                            // random!
-                            next_goals[i] = pick_random_pos(me.p);
+                        // if there is a seen but unhandled ghost
+                        if (!seen_ghosts.empty()) {
+                            // TODO: if the ghost is too far, ignore it
+                            ll best = 1e15;
+                            P goal;
+                            int id;
+                            for(auto& g: seen_ghosts) {
+                                auto d2 = dist2(g.second, me.p);
+                                if (d2 < best) {
+                                    best = d2;
+                                    goal = g.second;
+                                    id = g.first;
+                                }
+                            }
+                            printf("MOVE %d %d %s\n", goal.X, goal.Y,
+                                   "seen ghost"
+                                );
+                            if (goal == me.p) {
+                                seen_ghosts.erase(id);
+                            }
                         }
-                        printf("MOVE %d %d\n", next_goals[i].X, next_goals[i].Y);
+                        else {
+                            // go far to find ghosts
+                            if (next_goals[i] == me.p) {
+                                // random!
+                                next_goals[i] = pick_random_pos(me.p);
+                            }
+                            printf("MOVE %d %d\n", next_goals[i].X, next_goals[i].Y);
+                        }
                     }
                 }
             }
