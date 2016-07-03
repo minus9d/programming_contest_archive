@@ -31,8 +31,8 @@ typedef unsigned long long ull;
 
 
 using P = pair<int,int>;
-const int W = 16000;
-const int H = 9000;
+const int W = 16001;
+const int H = 9001;
 const int BR1 = 900;
 const int BR2 = 1760;
 const int VR = 2200;
@@ -66,6 +66,14 @@ public:
     P next_goal;
 };
 
+class GhostInfo {
+public:
+    int hp;
+    P p;
+    // "unseen", "seen", "busted", "estimated", "lost"
+    string state = "unseen";
+};
+
 int turn = 0;
 int captured = 0;
 
@@ -75,7 +83,8 @@ int myTeamId; // if this is 0, your base is on the top left of the map, if it is
 
 vector<P> unvisited;
 vector<int> stun_used_turn;
-map<int, P> seen_ghosts;
+// map<int, P> seen_ghosts;
+vector<GhostInfo> ghost_info;
 
 
 vector<State> us_state;
@@ -294,6 +303,52 @@ void update_unvisited(const vector<Entity>& us) {
     cerr << " after unvisited:" << SIZE(unvisited) << endl;
 }
 
+void update_ghost_info(vector<Entity>& ghosts, const vector<Entity>& us) {
+    for (auto& g: ghosts) {
+        auto id = g.id;
+        auto p = g.p;
+        
+        ghost_info[id].p = p;
+        ghost_info[id].state = "seen";
+
+        int id_pair = (id % 2) ? (id + 1) : (id - 1);
+        if (ghost_info[id].state == "seen" && id != 0) {
+            if (ghost_info[id_pair].state == "unseen") {
+                ghost_info[id_pair].state = "estimated";
+                int centX = W / 2;
+                int centY = H / 2;
+                ghost_info[id_pair].p = 
+                    P(centX * 2 - p.X, centY * 2 - p.Y);
+            }
+        }
+    }
+
+    // judge lost
+    REP(i, SIZE(ghost_info)) {
+        auto& g = ghost_info[i];
+        if (g.state == "seen" || g.state == "estimated") {
+            ll d2 = 1e15;
+            for(auto& me: us) {
+                d2 = min(d2, dist2(me.p, g.p));
+            }
+            bool visible = d2 <= pow2(VR);
+            
+            if (visible) {
+                bool included = false;
+                for(auto& g2: ghosts) {
+                    if (g2.id == i) {
+                        included = true;
+                        break;
+                    }
+                }
+                if (!included) {
+                    g.state = "lost";
+                }
+            }
+        }
+    }
+}
+
 P go_to_pick_ghost(const P& cur, const P& g) {
     double best_distance = (BR1 + BR2) / 2.0;
 
@@ -401,9 +456,9 @@ string choose_act(
 
     // carrying a ghost
     if (me.state == CARRYING) {
-        seen_ghosts.erase(me.value);
         if (near_our_base(me.p)) {
             ++captured;
+            ghost_info[me.value].state = "busted";
             return "RELEASE release";
         }
         else {
@@ -412,97 +467,88 @@ string choose_act(
     }
 
     // have no ghost
-    else {
-        // is there a ghost nearby?
-        int g_idx;
-        string state;
-        find_closest_ghost(me, ghosts, g_idx, state);
 
-        if (state == "bustable") {
-            auto& ghost = ghosts[g_idx];
-            seen_ghosts.erase(ghost.id);
-            stringstream sout;
-            sout << "BUST " << ghost.id;
-            return sout.str();
-        }
-        else if (state == "too_close" || state == "nearby") {
-            auto& ghost = ghosts[g_idx];
-            auto pos = go_to_pick_ghost(me.p, ghost.p);
-            seen_ghosts.erase(ghost.id);
-            return make_move_string(pos.X, pos.Y, state);
-        }
-        else if (me_state.ini_state && me_state.next_goal != me.p) {
-            auto& p = me_state.next_goal;
-            return make_move_string(p.X, p.Y,
-                                    "ini goal");
-        }
-        else {
-            if (me_state.next_goal == me.p) {
-                cerr << "reach to ini_goal." << endl;
-                me_state.ini_state = false;
+    // is there a ghost nearby?
+    int g_idx;
+    string state;
+    find_closest_ghost(me, ghosts, g_idx, state);
+    
+    if (state == "bustable") {
+        auto& ghost = ghosts[g_idx];
+        stringstream sout;
+        sout << "BUST " << ghost.id;
+        return sout.str();
+    }
+    if (state == "too_close" || state == "nearby") {
+        auto& ghost = ghosts[g_idx];
+        auto pos = go_to_pick_ghost(me.p, ghost.p);
+        return make_move_string(pos.X, pos.Y, state);
+    }
+    if (me_state.ini_state && me_state.next_goal != me.p) {
+        auto& p = me_state.next_goal;
+        return make_move_string(p.X, p.Y,
+                                "ini goal");
+    }
+
+    // no nearby ghost.
+
+    // have reached initial goal
+    if (me_state.next_goal == me.p) {
+        me_state.ini_state = false;
+    }
+
+    // if almost ghosts are already captured, go to help
+    if (captured > ghostCount * 0.4 && SIZE(ghosts) > 0) {
+        ll best = 1e15;
+        P goal;
+        int id;
+        for(auto& g: ghosts) {
+            auto d2 = dist2(g.p, me.p);
+            if (d2 < best) {
+                best = d2;
+                goal = g.p;
+                id = g.id;
             }
-
-            // if almost ghosts are already captured
-            if (captured > ghostCount * 0.4 && SIZE(ghosts) > 0) {
-                ll best = 1e15;
-                P goal;
-                int id;
-                for(auto& g: ghosts) {
-                    auto d2 = dist2(g.p, me.p);
-                    if (d2 < best) {
-                        best = d2;
-                        goal = g.p;
-                        id = g.id;
-                    }
-                }
-                auto pos = go_to_pick_ghost(me.p, goal);
-                seen_ghosts.erase(id);
-                return make_move_string(pos.X, pos.Y, "go to help");
-            }
-            else {
-                cerr << "seen_ghosts size:" << seen_ghosts.size() << endl;
-                cerr << "turn: " << turn << endl;
-
-
-                // if there is a seen but unhandled ghost
-                if (!seen_ghosts.empty()) {
-                    // TODO: if the ghost is too far, ignore it
-                    ll best = 1e15;
-                    P goal;
-                    int id;
-                    for(auto& g: seen_ghosts) {
-                        auto d2 = dist2(g.second, me.p);
-                        if (d2 < best) {
-                            best = d2;
-                            goal = g.second;
-                            id = g.first;
-                        }
-                    }
-                    if (goal == me.p) {
-                        seen_ghosts.erase(id);
-                    }
-                    return make_move_string(goal.X, goal.Y, "seen ghost");
-                }
-                else if (!unvisited.empty()) {
-                    P p = pick_unvisited_pos(me.p);
-                    stringstream sout;
-                    sout << "unv " << p.X << "," << p.Y;
-                    return make_move_string(p.X, p.Y, sout.str());
-                }
-                // random
-                else {
-                    P& next_goal = me_state.next_goal;
-                    // go far to find ghosts
-                    if (me_state.next_goal == me.p) {
-                        // random!
-                        next_goal = pick_random_pos(me.p);
-                    }
-                    return make_move_string(next_goal.X, next_goal.Y,
-                                            "random pos");
+        }
+        auto pos = go_to_pick_ghost(me.p, goal);
+        return make_move_string(pos.X, pos.Y, "go to help");
+    }
+    
+    // go to seen or estimated ghost
+    {
+        ll best = 1e15;
+        P goal;
+        for(auto& g: ghost_info) {
+            if (g.state == "seen" || g.state == "estimated") {
+                auto d2 = dist2(g.p, me.p);
+                if (d2 < best) {
+                    best = d2;
+                    goal = g.p;
                 }
             }
+        }
+        if (best != 1e15) {
+            return make_move_string(goal.X, goal.Y, "seen ghost");
         }
     }
+    
+    if (!unvisited.empty()) {
+        P p = pick_unvisited_pos(me.p);
+        stringstream sout;
+        sout << "unv " << p.X << "," << p.Y;
+        return make_move_string(p.X, p.Y, sout.str());
+    }
+
+    // random
+
+    P& next_goal = me_state.next_goal;
+    // go far to find ghosts
+    if (me_state.next_goal == me.p) {
+        // random!
+        next_goal = pick_random_pos(me.p);
+    }
+    return make_move_string(next_goal.X, next_goal.Y,
+                            "random pos");
 }
 
     
@@ -541,18 +587,13 @@ int main() {
 
     stun_used_turn.resize(bustersPerPlayer);
     us_state.resize(bustersPerPlayer);
+    ghost_info.resize(ghostCount);
 
     setup_next_goals();
 
 
     // game loop
     while (1) {
-        cerr << "num of seen_ghosts: " << SIZE(seen_ghosts) << endl;
-        for(auto& s: seen_ghosts) {
-            cerr << "  " << s.first << "(" << s.second.X << "," << s.second.Y << ")" << endl;
-        }
-
-
         ++turn;
 
         vector<Entity> us;
@@ -566,11 +607,14 @@ int main() {
         // check visited cells
         update_unvisited(us);
 
-        for (auto& g: ghosts) {
-            auto id = g.id;
-            seen_ghosts[id] = g.p;
+        update_ghost_info(ghosts, us);
+
+        cerr << "ghost info:" << endl;
+        REP(i, SIZE(ghost_info)) {
+            auto& g = ghost_info[i];
+            cerr << "  " << i << ": " << g.state << ", (" << g.p.X << "," << g.p.Y << ")" << endl;
         }
-        
+
         REP(i, SIZE(us)) {
             auto act = choose_act(i, us, them, ghosts, stunned_them_idx);
             cout << act << endl;
