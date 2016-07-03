@@ -430,13 +430,13 @@ string choose_act(
             seen_ghosts.erase(ghost.id);
             return make_move_string(pos.X, pos.Y, state);
         }
-        else if (me_state.ini_state && us_state[i].next_goal != me.p) {
-            auto& p = us_state[i].next_goal;
+        else if (me_state.ini_state && me_state.next_goal != me.p) {
+            auto& p = me_state.next_goal;
             return make_move_string(p.X, p.Y,
                                     "ini goal");
         }
         else {
-            if (us_state[i].next_goal == me.p) {
+            if (me_state.next_goal == me.p) {
                 cerr << "reach to ini_goal." << endl;
                 me_state.ini_state = false;
             }
@@ -486,9 +486,9 @@ string choose_act(
                 }
                 // random
                 else {
-                    P& next_goal = us_state[i].next_goal;
+                    P& next_goal = me_state.next_goal;
                     // go far to find ghosts
-                    if (us_state[i].next_goal == me.p) {
+                    if (me_state.next_goal == me.p) {
                         // random!
                         next_goal = pick_random_pos(me.p);
                     }
@@ -535,7 +535,7 @@ int main() {
 
 
     stun_used_turn.resize(bustersPerPlayer);
-    us_state.resize(bustersPerPlayer);
+    us_state.resize(6);
 
     setup_next_goals();
 
