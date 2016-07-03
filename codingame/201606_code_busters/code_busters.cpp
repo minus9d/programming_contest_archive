@@ -222,7 +222,7 @@ void find_closest_ghost(const Entity& me, const vector<Entity>& ghosts,
     }
 }
 
-bool near_our_base(P& p) {
+bool near_our_base(const P& p) {
     auto d2 = dist2(p, our_base);
     return d2 <= pow2(1600);
 }
@@ -366,6 +366,119 @@ P pick_random_pos(const P& cur) {
     }
 }
 
+string make_move_string(int x, int y, string message) {
+    stringstream sout;
+    sout << "MOVE " << x << " " << y << " " << message;
+    return sout.str();
+}
+
+string choose_act(
+    const int i, 
+    const vector<Entity>& us,
+    const vector<Entity>& them,
+    const vector<Entity>& ghosts,
+    set<int>& stunned_them_idx)
+{
+    auto& me = us[i];
+
+    // check visited cells
+    ++visited[me.p.Y / cell_size][me.p.X / cell_size];
+
+    // attempt to stun
+    int them_idx = 0;
+    if (stunnable(me, them, stun_used_turn, stunned_them_idx, them_idx)) {
+        stun_used_turn[me.id] = turn;
+        stunned_them_idx.insert(them_idx);
+        stringstream sout;
+        sout << "STUN " << them[them_idx].id << " stun " << them[them_idx].id;
+        return sout.str();
+    }
+
+    // have a ghost
+    else if (me.state == CARRYING) {
+        seen_ghosts.erase(me.value);
+        if (near_our_base(me.p)) {
+            ++captured;
+            return "RELEASE release";
+        }
+        else {
+            return make_move_string(our_base.X, our_base.Y, "go home");
+        }
+    }
+    // have no ghost
+    else {
+        // is there a ghost nearby?
+        int g_idx;
+        string state;
+        find_closest_ghost(me, ghosts, g_idx, state);
+
+        if (state == "bustable") {
+            auto& ghost = ghosts[g_idx];
+            seen_ghosts.erase(ghost.id);
+            stringstream sout;
+            sout << "BUST " << ghost.id;
+            return sout.str();
+        }
+        else if (state == "too_close" || state == "nearby") {
+            auto& ghost = ghosts[g_idx];
+            auto pos = go_to_pick_ghost(me.p, ghost.p);
+            seen_ghosts.erase(ghost.id);
+            return make_move_string(pos.X, pos.Y, state);
+        }
+        else {
+            // if almost ghosts are already captured
+            if (captured > ghostCount * 0.4 && SIZE(ghosts) > 0) {
+                ll best = 1e15;
+                P goal;
+                int id;
+                for(auto& g: ghosts) {
+                    auto d2 = dist2(g.p, me.p);
+                    if (d2 < best) {
+                        best = d2;
+                        goal = g.p;
+                        id = g.id;
+                    }
+                }
+                auto pos = go_to_pick_ghost(me.p, goal);
+                seen_ghosts.erase(id);
+                return make_move_string(pos.X, pos.Y, "go to help");
+            }
+            else {
+                // if there is a seen but unhandled ghost
+                if (!seen_ghosts.empty()) {
+                    // TODO: if the ghost is too far, ignore it
+                    ll best = 1e15;
+                    P goal;
+                    int id;
+                    for(auto& g: seen_ghosts) {
+                        auto d2 = dist2(g.second, me.p);
+                        if (d2 < best) {
+                            best = d2;
+                            goal = g.second;
+                            id = g.first;
+                        }
+                    }
+                    if (goal == me.p) {
+                        seen_ghosts.erase(id);
+                    }
+                    return make_move_string(goal.X, goal.Y, "seen ghost");
+                }
+                else {
+                    // go far to find ghosts
+                    if (next_goals[i] == me.p) {
+                        // random!
+                        next_goals[i] = pick_random_pos(me.p);
+                    }
+                    return make_move_string(next_goals[i].X, next_goals[i].Y,
+                                            "random pos");
+                }
+            }
+        }
+    }
+}
+
+    
+    
 
 /**
  * Send your busters out into the fog to trap ghosts and bring them home!
@@ -409,102 +522,8 @@ int main() {
         }
         
         REP(i, SIZE(us)) {
-            auto& me = us[i];
-
-            // check visited cells
-            ++visited[me.p.Y / cell_size][me.p.X / cell_size];
-
-            // attempt to stun
-            int them_idx = 0;
-            if (stunnable(me, them, stun_used_turn, stunned_them_idx, them_idx)) {
-                stringstream sout;
-                sout << "stun " << them[them_idx].id;
-                printf("STUN %d %s\n", them[them_idx].id, sout.str().c_str());
-                stun_used_turn[me.id] = turn;
-                stunned_them_idx.insert(them_idx);
-            }
-            // have a ghost
-            else if (me.state == CARRYING) {
-                seen_ghosts.erase(me.value);
-                if (near_our_base(me.p)) {
-                    printf("RELEASE %s\n", "release");
-                    ++captured;
-                }
-                else {
-                    printf("MOVE %d %d %s\n",
-                           our_base.X, our_base.Y, "go home");
-                }
-            }
-            // have no ghost
-            else {
-                // is there a ghost nearby?
-                int g_idx;
-                string state;
-                find_closest_ghost(me, ghosts, g_idx, state);
-
-                if (state == "bustable") {
-                    auto& ghost = ghosts[g_idx];
-                    printf("BUST %d\n", ghost.id);
-                    seen_ghosts.erase(ghost.id);
-                }
-                else if (state == "too_close" || state == "nearby") {
-                    auto& ghost = ghosts[g_idx];
-                    auto pos = go_to_pick_ghost(me.p, ghost.p);
-                    printf("MOVE %d %d %s\n", pos.X, pos.Y, state.c_str());
-                    seen_ghosts.erase(ghost.id);
-                }
-                else {
-                    // if almost ghosts are already captured
-                    if (captured > ghostCount * 0.4 && SIZE(ghosts) > 0) {
-                        ll best = 1e15;
-                        P goal;
-                        int id;
-                        for(auto& g: ghosts) {
-                            auto d2 = dist2(g.p, me.p);
-                            if (d2 < best) {
-                                best = d2;
-                                goal = g.p;
-                                id = g.id;
-                            }
-                        }
-                        auto pos = go_to_pick_ghost(me.p, goal);
-                        printf("MOVE %d %d %s\n", pos.X, pos.Y,
-                               "go to help");
-                        seen_ghosts.erase(id);
-                    }
-                    else {
-                        // if there is a seen but unhandled ghost
-                        if (!seen_ghosts.empty()) {
-                            // TODO: if the ghost is too far, ignore it
-                            ll best = 1e15;
-                            P goal;
-                            int id;
-                            for(auto& g: seen_ghosts) {
-                                auto d2 = dist2(g.second, me.p);
-                                if (d2 < best) {
-                                    best = d2;
-                                    goal = g.second;
-                                    id = g.first;
-                                }
-                            }
-                            printf("MOVE %d %d %s\n", goal.X, goal.Y,
-                                   "seen ghost"
-                                );
-                            if (goal == me.p) {
-                                seen_ghosts.erase(id);
-                            }
-                        }
-                        else {
-                            // go far to find ghosts
-                            if (next_goals[i] == me.p) {
-                                // random!
-                                next_goals[i] = pick_random_pos(me.p);
-                            }
-                            printf("MOVE %d %d\n", next_goals[i].X, next_goals[i].Y);
-                        }
-                    }
-                }
-            }
+            auto act = choose_act(i, us, them, ghosts, stunned_them_idx);
+            cout << act << endl;
         }
     }
 }
