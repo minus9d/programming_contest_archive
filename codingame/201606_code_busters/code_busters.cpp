@@ -43,18 +43,6 @@ P their_base;
 
 const int cell_size = 800;
 
-int turn = 0;
-int captured = 0;
-
-int bustersPerPlayer; // the amount of busters you control
-int ghostCount; // the amount of ghosts on the map
-int myTeamId; // if this is 0, your base is on the top left of the map, if it is one, on the bottom right
-
-vector<P> unvisited;
-vector<int> stun_used_turn;
-map<int, P> seen_ghosts;
-vector<P> next_goals;
-
 
 class Entity {
 public:
@@ -71,6 +59,25 @@ public:
         {
         };
 };
+
+class State {
+public:
+    bool ini_state = true;
+};
+
+int turn = 0;
+int captured = 0;
+
+int bustersPerPlayer; // the amount of busters you control
+int ghostCount; // the amount of ghosts on the map
+int myTeamId; // if this is 0, your base is on the top left of the map, if it is one, on the bottom right
+
+vector<P> unvisited;
+vector<int> stun_used_turn;
+map<int, P> seen_ghosts;
+vector<P> next_goals;
+vector<State> us_state;
+
 
 void input(vector<Entity>& us, vector<Entity>& them, vector<Entity>& ghosts,
            const int myTeamId) {
@@ -373,12 +380,13 @@ string make_move_string(int x, int y, string message) {
 
 string choose_act(
     const int i, 
-    const vector<Entity>& us,
+    vector<Entity>& us,
     const vector<Entity>& them,
     const vector<Entity>& ghosts,
     set<int>& stunned_them_idx)
 {
     auto& me = us[i];
+    auto& me_state = us_state[me.id];
 
     // attempt to stun
     int them_idx = 0;
@@ -421,7 +429,17 @@ string choose_act(
             seen_ghosts.erase(ghost.id);
             return make_move_string(pos.X, pos.Y, state);
         }
+        else if (me_state.ini_state && next_goals[i] != me.p) {
+            auto& p = next_goals[i];
+            return make_move_string(p.X, p.Y,
+                                    "ini goal");
+        }
         else {
+            if (next_goals[i] == me.p) {
+                cerr << "reach to ini_goal." << endl;
+                me_state.ini_state = false;
+            }
+
             // if almost ghosts are already captured
             if (captured > ghostCount * 0.4 && SIZE(ghosts) > 0) {
                 ll best = 1e15;
@@ -511,6 +529,7 @@ int main() {
     setup_next_goals();
 
     stun_used_turn.resize(bustersPerPlayer);
+    us_state.resize(bustersPerPlayer);
 
     // game loop
     while (1) {
