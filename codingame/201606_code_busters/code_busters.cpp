@@ -434,6 +434,22 @@ string make_move_string(int x, int y, string message) {
     return sout.str();
 }
 
+// bool closest_ghost(const Entity& me, const string state, P& p, int dist) {
+//     ll best = 1e15;
+//     P goal;
+//     for(auto& g: ghost_info) {
+//         if (g.state == state) {
+//             auto d2 = dist2(g.p, me.p);
+//             if (d2 < best) {
+//                 best = d2;
+//                 goal = g.p;
+//             }
+//         }
+//     }
+//     p = goal;
+//     return best != 1e15;
+// }
+
 string choose_act(
     const int i, 
     vector<Entity>& us,
@@ -443,6 +459,12 @@ string choose_act(
 {
     auto& me = us[i];
     auto& me_state = us_state[i];
+
+    // have reached initial goal
+    if (me_state.next_goal == me.p) {
+        me_state.ini_state = false;
+    }
+
 
     // attempt to stun
     int them_idx = 0;
@@ -484,30 +506,18 @@ string choose_act(
         auto pos = go_to_pick_ghost(me.p, ghost.p);
         return make_move_string(pos.X, pos.Y, state);
     }
-    if (me_state.ini_state && me_state.next_goal != me.p) {
-        auto& p = me_state.next_goal;
-        return make_move_string(p.X, p.Y,
-                                "ini goal");
-    }
 
     // no nearby ghost.
-
-    // have reached initial goal
-    if (me_state.next_goal == me.p) {
-        me_state.ini_state = false;
-    }
 
     // if almost ghosts are already captured, go to help
     if (captured > ghostCount * 0.4 && SIZE(ghosts) > 0) {
         ll best = 1e15;
         P goal;
-        int id;
         for(auto& g: ghosts) {
             auto d2 = dist2(g.p, me.p);
             if (d2 < best) {
                 best = d2;
                 goal = g.p;
-                id = g.id;
             }
         }
         auto pos = go_to_pick_ghost(me.p, goal);
@@ -518,20 +528,34 @@ string choose_act(
     {
         ll best = 1e15;
         P goal;
+        string state;
         for(auto& g: ghost_info) {
             if (g.state == "seen" || g.state == "estimated") {
-                auto d2 = dist2(g.p, me.p);
-                if (d2 < best) {
-                    best = d2;
-                    goal = g.p;
+                // if ghost is too close to their base, ignore it
+                auto d = sqrt(dist2(g.p, our_base)) - sqrt(dist2(g.p, their_base));
+                if (d < 2000) {
+                    auto d2 = dist2(g.p, me.p);
+                    if (d2 < best) {
+                        best = d2;
+                        goal = g.p;
+                        state = g.state;
+                    }
                 }
             }
         }
         if (best != 1e15) {
-            return make_move_string(goal.X, goal.Y, "seen ghost");
+            return make_move_string(goal.X, goal.Y, state + " ghost");
         }
     }
     
+    // if havn't reached ini goal
+    if (me_state.ini_state && me_state.next_goal != me.p) {
+        auto& p = me_state.next_goal;
+        return make_move_string(p.X, p.Y,
+                                "ini goal");
+    }
+
+    // if there is unvisited points
     if (!unvisited.empty()) {
         P p = pick_unvisited_pos(me.p);
         stringstream sout;
