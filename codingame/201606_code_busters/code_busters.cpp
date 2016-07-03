@@ -387,7 +387,7 @@ string choose_act(
     set<int>& stunned_them_idx)
 {
     auto& me = us[i];
-    auto& me_state = us_state[me.id];
+    auto& me_state = us_state[i];
 
     // attempt to stun
     int them_idx = 0;
@@ -399,8 +399,8 @@ string choose_act(
         return sout.str();
     }
 
-    // have a ghost
-    else if (me.state == CARRYING) {
+    // carrying a ghost
+    if (me.state == CARRYING) {
         seen_ghosts.erase(me.value);
         if (near_our_base(me.p)) {
             ++captured;
@@ -410,6 +410,7 @@ string choose_act(
             return make_move_string(our_base.X, our_base.Y, "go home");
         }
     }
+
     // have no ghost
     else {
         // is there a ghost nearby?
@@ -459,8 +460,12 @@ string choose_act(
                 return make_move_string(pos.X, pos.Y, "go to help");
             }
             else {
+                cerr << "seen_ghosts size:" << seen_ghosts.size() << endl;
+                cerr << "turn: " << turn << endl;
+
+
                 // if there is a seen but unhandled ghost
-                if (!seen_ghosts.empty() && turn > 100) {
+                if (!seen_ghosts.empty()) {
                     // TODO: if the ghost is too far, ignore it
                     ll best = 1e15;
                     P goal;
@@ -535,13 +540,19 @@ int main() {
 
 
     stun_used_turn.resize(bustersPerPlayer);
-    us_state.resize(6);
+    us_state.resize(bustersPerPlayer);
 
     setup_next_goals();
 
 
     // game loop
     while (1) {
+        cerr << "num of seen_ghosts: " << SIZE(seen_ghosts) << endl;
+        for(auto& s: seen_ghosts) {
+            cerr << "  " << s.first << "(" << s.second.X << "," << s.second.Y << ")" << endl;
+        }
+
+
         ++turn;
 
         vector<Entity> us;
