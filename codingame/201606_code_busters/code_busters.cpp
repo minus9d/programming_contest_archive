@@ -50,7 +50,7 @@ int bustersPerPlayer; // the amount of busters you control
 int ghostCount; // the amount of ghosts on the map
 int myTeamId; // if this is 0, your base is on the top left of the map, if it is one, on the bottom right
 
-vector<vector<char>> visited;
+vector<P> unvisited;
 vector<int> stun_used_turn;
 map<int, P> seen_ghosts;
 vector<P> next_goals;
@@ -266,31 +266,51 @@ bool stunnable(const Entity& me, const vector<Entity>& them,
     }
 }
 
-P find_nearby_unvisited_pos(const P& cur) {
-    int h_num = SIZE(visited);
-    int w_num = SIZE(visited[0]);
-
-    ll shortest = 1e15;
-    P ret;
-    REP(h, h_num) {
-        REP(w, w_num) {
-            if (!visited[h][w]) {
-                P cell_center{
-                    h * cell_size + cell_size / 2,
-                    w * cell_size + cell_size / 2
-                        };
-                auto d2 = dist2(cell_center, cur);
-                if (d2 < shortest) {
-                    shortest = d2;
-                    ret = cell_center;
-                }
+void update_unvisited(const vector<Entity>& us) {
+    vector<P> new_unvisited;
+    cerr << "before unvisited:" << SIZE(unvisited) << endl;
+    for(auto& p: unvisited) {
+        bool visible = false;
+        for(auto& me: us) {
+            auto d2 = dist2(me.p, p);
+            if (d2 <= pow2(VR)) {
+                visible = true;
+                continue;
             }
         }
+        if (!visible) {
+            new_unvisited.pb( p );
+        }
     }
-    if (shortest == 1e15) {
-        ret = P{-1,-1};
-    }
-    return ret;
+    unvisited = new_unvisited;
+    cerr << " after unvisited:" << SIZE(unvisited) << endl;
+}
+
+P find_nearby_unvisited_pos(const P& cur) {
+    // int h_num = SIZE(visited);
+    // int w_num = SIZE(visited[0]);
+
+    // ll shortest = 1e15;
+    // P ret;
+    // REP(h, h_num) {
+    //     REP(w, w_num) {
+    //         if (!visited[h][w]) {
+    //             P cell_center{
+    //                 h * cell_size + cell_size / 2,
+    //                 w * cell_size + cell_size / 2
+    //                     };
+    //             auto d2 = dist2(cell_center, cur);
+    //             if (d2 < shortest) {
+    //                 shortest = d2;
+    //                 ret = cell_center;
+    //             }
+    //         }
+    //     }
+    // }
+    // if (shortest == 1e15) {
+    //     ret = P{-1,-1};
+    // }
+    // return ret;
 }
 
 P go_to_pick_ghost(const P& cur, const P& g) {
@@ -380,9 +400,6 @@ string choose_act(
     set<int>& stunned_them_idx)
 {
     auto& me = us[i];
-
-    // check visited cells
-    ++visited[me.p.Y / cell_size][me.p.X / cell_size];
 
     // attempt to stun
     int them_idx = 0;
@@ -489,7 +506,12 @@ int main() {
     cin >> myTeamId; cin.ignore();
 
     // initialize;
-    visited = vector<vector<char>>(H / cell_size + 1, vector<char>(W / cell_size));
+    const int unit = 400;
+    REP(h, H / unit) {
+        REP(w, W / unit) {
+            unvisited.pb( P(unit * h, unit * w) );
+        }
+    }
     if (myTeamId == 0) {
         our_base = P{0,0};
         their_base = P{W,H};
@@ -515,6 +537,9 @@ int main() {
         print_input_data(us, them, ghosts);
 
         set<int> stunned_them_idx;
+
+        // check visited cells
+        update_unvisited(us);
 
         for (auto& g: ghosts) {
             auto id = g.id;
