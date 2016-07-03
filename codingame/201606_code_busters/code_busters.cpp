@@ -286,33 +286,6 @@ void update_unvisited(const vector<Entity>& us) {
     cerr << " after unvisited:" << SIZE(unvisited) << endl;
 }
 
-P find_nearby_unvisited_pos(const P& cur) {
-    // int h_num = SIZE(visited);
-    // int w_num = SIZE(visited[0]);
-
-    // ll shortest = 1e15;
-    // P ret;
-    // REP(h, h_num) {
-    //     REP(w, w_num) {
-    //         if (!visited[h][w]) {
-    //             P cell_center{
-    //                 h * cell_size + cell_size / 2,
-    //                 w * cell_size + cell_size / 2
-    //                     };
-    //             auto d2 = dist2(cell_center, cur);
-    //             if (d2 < shortest) {
-    //                 shortest = d2;
-    //                 ret = cell_center;
-    //             }
-    //         }
-    //     }
-    // }
-    // if (shortest == 1e15) {
-    //     ret = P{-1,-1};
-    // }
-    // return ret;
-}
-
 P go_to_pick_ghost(const P& cur, const P& g) {
     double best_distance = (BR1 + BR2) / 2.0;
 
@@ -350,14 +323,20 @@ P go_to_pick_ghost(const P& cur, const P& g) {
     return best_pos;
 }
 
+P pick_unvisited_pos(const P& cur) {
+    auto best = 1e15;
+    P ret;
+    for(auto& p: unvisited) {
+        auto d2 = dist2(cur, p);
+        if (d2 < best) {
+            best = d2;
+            ret = p;
+        }
+    }
+    return ret;
+}
+
 P pick_random_pos(const P& cur) {
-
-    // TODO: there is a bug
-    // auto nearby = find_nearby_unvisited_pos(cur);
-    // if (nearby != P{-1,-1}) {
-    //     return nearby;
-    // }
-
     while (true) {
         P ret = P{rand() % W, rand() % H};
         if (rand() % 2) {
@@ -480,6 +459,13 @@ string choose_act(
                     }
                     return make_move_string(goal.X, goal.Y, "seen ghost");
                 }
+                else if (!unvisited.empty()) {
+                    P p = pick_unvisited_pos(me.p);
+                    stringstream sout;
+                    sout << "unv " << p.X << "," << p.Y;
+                    return make_move_string(p.X, p.Y, sout.str());
+                }
+                // random
                 else {
                     // go far to find ghosts
                     if (next_goals[i] == me.p) {
@@ -507,9 +493,9 @@ int main() {
 
     // initialize;
     const int unit = 400;
-    REP(h, H / unit) {
-        REP(w, W / unit) {
-            unvisited.pb( P(unit * h, unit * w) );
+    REP(w, W / unit) {
+        REP(h, H / unit) {
+            unvisited.pb( P(unit * w, unit * h) );
         }
     }
     if (myTeamId == 0) {
