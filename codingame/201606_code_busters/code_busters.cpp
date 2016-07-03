@@ -63,6 +63,7 @@ public:
 class State {
 public:
     bool ini_state = true;
+    P next_goal;
 };
 
 int turn = 0;
@@ -75,7 +76,8 @@ int myTeamId; // if this is 0, your base is on the top left of the map, if it is
 vector<P> unvisited;
 vector<int> stun_used_turn;
 map<int, P> seen_ghosts;
-vector<P> next_goals;
+
+
 vector<State> us_state;
 
 
@@ -172,9 +174,8 @@ void setup_next_goals() {
         }
     }
 
-    next_goals.resize(bustersPerPlayer);
     REP(i, bustersPerPlayer) {
-        next_goals[i] = initial_goals[i];
+        us_state[i].next_goal = initial_goals[i];
     }
 }           
 
@@ -429,13 +430,13 @@ string choose_act(
             seen_ghosts.erase(ghost.id);
             return make_move_string(pos.X, pos.Y, state);
         }
-        else if (me_state.ini_state && next_goals[i] != me.p) {
-            auto& p = next_goals[i];
+        else if (me_state.ini_state && us_state[i].next_goal != me.p) {
+            auto& p = us_state[i].next_goal;
             return make_move_string(p.X, p.Y,
                                     "ini goal");
         }
         else {
-            if (next_goals[i] == me.p) {
+            if (us_state[i].next_goal == me.p) {
                 cerr << "reach to ini_goal." << endl;
                 me_state.ini_state = false;
             }
@@ -485,12 +486,13 @@ string choose_act(
                 }
                 // random
                 else {
+                    P& next_goal = us_state[i].next_goal;
                     // go far to find ghosts
-                    if (next_goals[i] == me.p) {
+                    if (us_state[i].next_goal == me.p) {
                         // random!
-                        next_goals[i] = pick_random_pos(me.p);
+                        next_goal = pick_random_pos(me.p);
                     }
-                    return make_move_string(next_goals[i].X, next_goals[i].Y,
+                    return make_move_string(next_goal.X, next_goal.Y,
                                             "random pos");
                 }
             }
@@ -531,10 +533,12 @@ int main() {
     }
 
 
-    setup_next_goals();
 
     stun_used_turn.resize(bustersPerPlayer);
     us_state.resize(bustersPerPlayer);
+
+    setup_next_goals();
+
 
     // game loop
     while (1) {
