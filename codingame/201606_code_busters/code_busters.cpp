@@ -513,7 +513,12 @@ int main() {
     const int unit = 400;
     REP(w, W / unit) {
         REP(h, H / unit) {
-            unvisited.pb( P(unit * w, unit * h) );
+            P p{ unit * w, unit * h };
+            if (dist2(p, our_base) < pow2(4000)
+                || dist2(p, their_base) < pow2(4000)) {
+                continue;
+            }
+            unvisited.pb(p);
         }
     }
     if (myTeamId == 0) {
