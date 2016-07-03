@@ -445,7 +445,7 @@ string choose_act(
             }
             else {
                 // if there is a seen but unhandled ghost
-                if (!seen_ghosts.empty()) {
+                if (!seen_ghosts.empty() && turn > 100) {
                     // TODO: if the ghost is too far, ignore it
                     ll best = 1e15;
                     P goal;
