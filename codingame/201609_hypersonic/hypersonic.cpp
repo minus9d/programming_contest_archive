@@ -57,24 +57,40 @@ struct Bomb {
     P pos;
 };
 
+struct Item {
+    int item_type;
+    P pos;
+};
+
 struct State {
     vector<string> cells;
     Player me;
     Player you;
     vector<Bomb> bombs;
+    vector<Item> items;
 };
 
 const char FLOOR_SIGN = '.';
 const char BOX_SIGN1 = '1';
 const char BOX_SIGN2 = '2';
+const char DBOX_SIGN1 = '3';
+const char DBOX_SIGN2 = '4';
+const char WALL_SIGN = 'X';
+
+const char BOMB_SIGN = 'B';
+
 
 const int PLAYER = 0;
 const int BOMB = 1;
+const int ITEM = 2;
 
 const int ME = 0;
 const int YOU = 1;
 
 const P NO_MOVE = P{-1,-1};
+
+const int ITEM_EXTRA_RANGE = 1;
+const int ITEM_EXTRA_BOMB = 2;
 
 const int dx[4] = {0,0,1,-1};
 const int dy[4] = {1,-1,0,0};
@@ -83,6 +99,46 @@ const int dy[4] = {1,-1,0,0};
 int W;
 int H;
 int MYID;
+
+void print_cells(const State& s) {
+    for(auto& line: s.cells) {
+        cerr << line << endl;
+    }
+    cerr << endl;
+}
+
+void print_pos(const P& p) {
+    cerr << "(" << p.x << "," << p.y << ")" << endl;
+}
+
+bool within_board(const State& s, const P& p) {
+    return 0 <= p.x && p.x <= W-1 && 0<= p.y && p.y <= H-1;
+}
+
+// TODO: bomb check
+bool is_floor(const State& s, const P& p) {
+    return within_board(s, p) && s.cells[p.y][p.x] == FLOOR_SIGN;
+}
+
+bool is_wall(const State& s, const P& p) {
+    return within_board(s, p) && s.cells[p.y][p.x] == WALL_SIGN;
+}
+
+// TODO: bomb check
+bool is_box(const State& s, const P& p) {
+    if (!within_board(s, p)) return false;
+    auto ch = s.cells[p.y][p.x];
+    return (ch == BOX_SIGN1
+         || ch == BOX_SIGN2
+         || ch == DBOX_SIGN1
+         || ch == DBOX_SIGN2);
+}
+
+bool is_bomable_box(const State& s, const P& p) {
+    if (!within_board(s, p)) return false;
+    auto ch = s.cells[p.y][p.x];
+    return (ch == BOX_SIGN1 || ch == BOX_SIGN2);
+}
 
 State get_state() {
     State s;
@@ -108,38 +164,40 @@ State get_state() {
                 s.you = Player{ owner, param1, param2, P{x,y} };
             }
         }
-        else {
+        else if (entityType == BOMB) {
             s.bombs.pb( Bomb{ owner, param1, param2, P{x,y} } );
         }
+        else if (entityType == ITEM) {
+            s.items.pb( Item{ param1, P{x,y} } );
+        }
     }
+
+    // overwrite 'B' signs on bombs
+    for(auto& b: s.bombs) {
+        s.cells[b.pos.y][b.pos.x] = 'B';
+    }
+
+    // check boxes which will be destroyed
+    for(auto& b: s.bombs) {
+        int range = b.expl_range;
+        REP(d,4) {
+            FOR(i,1,range) {
+                P p2{b.pos.x + dx[d] * i, b.pos.y + dy[d] * i};
+                if (is_wall(s, p2)) break;
+                if (is_box(s, p2)) {
+                    if (s.cells[p2.y][p2.x] == BOX_SIGN1) {
+                        s.cells[p2.y][p2.x] = DBOX_SIGN1;
+                    }
+                    if (s.cells[p2.y][p2.x] == BOX_SIGN2) {
+                        s.cells[p2.y][p2.x] = DBOX_SIGN2;
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
     return s;
-}
-
-void print_cells(const State& s) {
-    for(auto& line: s.cells) {
-        cerr << line << endl;
-    }
-    cerr << endl;
-}
-
-void print_pos(const P& p) {
-    cerr << "(" << p.x << "," << p.y << ")" << endl;
-}
-
-bool within_board(const State& s, const P& p) {
-    return 0 <= p.x && p.x <= W-1 && 0<= p.y && p.y <= H-1;
-}
-
-// TODO: bomb check
-bool is_floor(const State& s, const P& p) {
-    return within_board(s, p) && s.cells[p.y][p.x] == FLOOR_SIGN;
-}
-
-// TODO: bomb check
-bool is_box(const State& s, const P& p) {
-    if (!within_board(s, p)) return false;
-    if (is_floor(s, p)) return false;
-    return true;
 }
 
 bool bombable(const State& s, const P& p) {
@@ -147,6 +205,7 @@ bool bombable(const State& s, const P& p) {
     REP(d, 4) {
         REP(i, range) {
             P p2{p.x + dx[d] * i, p.y + dy[d] * i};
+            if (is_wall(s, p2)) break;
             if (is_box(s, p2)) return true;
         }
     }
@@ -224,3 +283,4 @@ int main()
         }
     }
 }
+
