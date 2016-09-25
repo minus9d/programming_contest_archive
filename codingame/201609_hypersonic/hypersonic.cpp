@@ -38,6 +38,7 @@ inline bool operator<(const P& lhs, const P& rhs)
     return lhs.x == rhs.x ? (lhs.y < rhs.y) : lhs.x < rhs.x;
 }
 
+// not effective??
 inline bool operator==(const P& lhs, const P& rhs)
 {
     return (lhs.x == rhs.x && lhs.y == rhs.y);
@@ -78,6 +79,7 @@ const char DBOX_SIGN2 = '4';
 const char WALL_SIGN = 'X';
 
 const char BOMB_SIGN = 'B';
+const char ITEM_SIGN = 'I';
 
 
 const int PLAYER = 0;
@@ -100,6 +102,10 @@ int W;
 int H;
 int MYID;
 
+bool same_pos(const P& p1, const P& p2) {
+    return p1.x == p2.x && p1.y == p2.y;
+}
+
 void print_cells(const State& s) {
     for(auto& line: s.cells) {
         cerr << line << endl;
@@ -117,7 +123,9 @@ bool within_board(const State& s, const P& p) {
 
 // TODO: bomb check
 bool is_floor(const State& s, const P& p) {
-    return within_board(s, p) && s.cells[p.y][p.x] == FLOOR_SIGN;
+    if (!within_board(s, p)) return false;
+    auto ch = s.cells[p.y][p.x];
+    return ch == FLOOR_SIGN || ch == ITEM_SIGN;
 }
 
 bool is_wall(const State& s, const P& p) {
@@ -139,6 +147,13 @@ bool is_bomable_box(const State& s, const P& p) {
     auto ch = s.cells[p.y][p.x];
     return (ch == BOX_SIGN1 || ch == BOX_SIGN2);
 }
+
+bool is_item(const State& s, const P& p) {
+    if (!within_board(s, p)) return false;
+    auto ch = s.cells[p.y][p.x];
+    return ch == ITEM_SIGN;
+}
+
 
 State get_state() {
     State s;
@@ -170,6 +185,11 @@ State get_state() {
         else if (entityType == ITEM) {
             s.items.pb( Item{ param1, P{x,y} } );
         }
+    }
+
+    // overwrite 'I' signs on items
+    for(auto& i: s.items) {
+        s.cells[i.pos.y][i.pos.x] = 'I';
     }
 
     // overwrite 'B' signs on bombs
@@ -212,8 +232,9 @@ bool bombable(const State& s, const P& p) {
     return false;
 }
 
-P find_nearest_bomb_sight(const State& s) {
-    // DFS
+P find_object(const State& s, std::function<bool(const State& s, const P& p)> func)
+{
+    // BFS
     queue<P> q;
     set<P> seen;
     q.push(s.me.pos);
@@ -225,7 +246,7 @@ P find_nearest_bomb_sight(const State& s) {
         P p = q.front();
         q.pop();
 
-        if (bombable(s, p)) {
+        if (func(s, p)) {
             return p;
         }
 
@@ -249,6 +270,13 @@ P find_nearest_bomb_sight(const State& s) {
     return P{-1,-1};
 }
 
+P find_nearest_bomb_sight(const State& s) {
+    return find_object(s, bombable);
+}
+
+P find_nearest_item(const State& s) {
+    return find_object(s, is_item);
+}
 
 /**
  * Auto-generated code below aims at helping you parse
@@ -270,15 +298,23 @@ int main()
         cerr << "target pos:";
         print_pos(pos);
 
-        if (pos.x == NO_MOVE.x && pos.y == NO_MOVE.y) {
+
+        // nothing to do
+        if (same_pos(pos, NO_MOVE)) {
             cout << "BOMB 6 5" << endl;
         }
         else {
-            if (pos == s.me.pos) {
-                cout << "BOMB " << pos.x << " " << pos.y << endl;
+            const auto item = find_nearest_item(s);
+            if (s.me.num_of_bombs == 0 && !same_pos(item, NO_MOVE)) {
+                cout << "MOVE " << item.x << " " << item.y << endl;
             }
             else {
-                cout << "MOVE " << pos.x << " " << pos.y << endl;
+                if (pos == s.me.pos) {
+                    cout << "BOMB " << pos.x << " " << pos.y << endl;
+                }
+                else {
+                    cout << "MOVE " << pos.x << " " << pos.y << endl;
+                }
             }
         }
     }
