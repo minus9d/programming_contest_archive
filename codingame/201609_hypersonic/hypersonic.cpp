@@ -132,6 +132,10 @@ bool is_wall(const State& s, const P& p) {
     return within_board(s, p) && s.cells[p.y][p.x] == WALL_SIGN;
 }
 
+bool is_bomb(const State& s, const P& p) {
+    return within_board(s, p) && s.cells[p.y][p.x] == BOMB_SIGN;
+}
+
 // TODO: bomb check
 bool is_box(const State& s, const P& p) {
     if (!within_board(s, p)) return false;
@@ -142,7 +146,8 @@ bool is_box(const State& s, const P& p) {
          || ch == DBOX_SIGN2);
 }
 
-bool is_bomable_box(const State& s, const P& p) {
+// whether p is a box which is not targeted by any bomb
+bool is_bombable_box(const State& s, const P& p) {
     if (!within_board(s, p)) return false;
     auto ch = s.cells[p.y][p.x];
     return (ch == BOX_SIGN1 || ch == BOX_SIGN2);
@@ -203,8 +208,10 @@ State get_state() {
         REP(d,4) {
             FOR(i,1,range) {
                 P p2{b.pos.x + dx[d] * i, b.pos.y + dy[d] * i};
+                if (!within_board(s, p2)) break;
                 if (is_wall(s, p2)) break;
-                if (is_box(s, p2)) {
+                if (is_bomb(s, p2)) break;
+                if (is_bombable_box(s, p2)) {
                     if (s.cells[p2.y][p2.x] == BOX_SIGN1) {
                         s.cells[p2.y][p2.x] = DBOX_SIGN1;
                     }
@@ -220,7 +227,11 @@ State get_state() {
     return s;
 }
 
+
+// 
 bool bombable(const State& s, const P& p) {
+    // can't put a bomb!
+    if (!is_floor(s, p)) return false;
     auto range = s.me.expl_range;
     REP(d, 4) {
         REP(i, range) {
