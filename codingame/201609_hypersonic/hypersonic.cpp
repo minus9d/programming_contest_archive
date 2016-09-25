@@ -64,6 +64,9 @@ struct State {
     vector<Bomb> bombs;
 };
 
+const char FLOOR_SIGN = '.';
+const char BOX_SIGN1 = '1';
+const char BOX_SIGN2 = '2';
 
 const int PLAYER = 0;
 const int BOMB = 1;
@@ -129,12 +132,14 @@ bool within_board(const State& s, const P& p) {
 
 // TODO: bomb check
 bool is_floor(const State& s, const P& p) {
-    return within_board(s, p) && s.cells[p.y][p.x] == '.';
+    return within_board(s, p) && s.cells[p.y][p.x] == FLOOR_SIGN;
 }
 
 // TODO: bomb check
 bool is_box(const State& s, const P& p) {
-    return within_board(s, p) && s.cells[p.y][p.x] == '0';
+    if (!within_board(s, p)) return false;
+    if (is_floor(s, p)) return false;
+    return true;
 }
 
 bool bombable(const State& s, const P& p) {
@@ -156,6 +161,7 @@ P find_nearest_bomb_sight(const State& s) {
     P tmp = s.me.pos;
     seen.insert(tmp);
 
+    int loop_num = 0;
     while(!q.empty()) {
         P p = q.front();
         q.pop();
@@ -170,7 +176,14 @@ P find_nearest_bomb_sight(const State& s) {
             p2.y += dy[i];
             if (within_board(s, p2) && is_floor(s, p2) && !seen.count(p2)) {
                 q.push(p2);
+                seen.insert(p2);
             }
+        }
+        ++loop_num;
+        if (loop_num > 1000) {
+            cerr << "something's wrong! infinite loop" << endl;
+            cerr << "popped is ";
+            print_pos(p);
         }
     }
 
