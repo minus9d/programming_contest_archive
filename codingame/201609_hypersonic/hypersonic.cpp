@@ -27,27 +27,34 @@ typedef unsigned long long ull;
 #define mp make_pair
 #define mt make_tuple
 
-const int PLAYER = 0;
-const int BOMB = 1;
+struct P {
+    int x;
+    int y;
+};
 
-const int ME = 0;
-const int YOU = 1;
+// this function enables set<P>
+inline bool operator<(const P& lhs, const P& rhs)
+{
+    return lhs.x == rhs.x ? (lhs.y < rhs.y) : lhs.x < rhs.x;
+}
 
-// globals
-int W;
-int H;
-int MYID;
+inline bool operator==(const P& lhs, const P& rhs)
+{
+    return (lhs.x == rhs.x && lhs.y == rhs.y);
+}
 
 struct Player {
     int id;
     int num_of_bombs;
     int expl_range;
+    P pos;
 };
 
 struct Bomb {
     int owner;
     int timer;
     int expl_range;
+    P pos;
 };
 
 struct State {
@@ -56,6 +63,23 @@ struct State {
     Player you;
     vector<Bomb> bombs;
 };
+
+
+const int PLAYER = 0;
+const int BOMB = 1;
+
+const int ME = 0;
+const int YOU = 1;
+
+const P NO_MOVE = P{-1,-1};
+
+const int dx[4] = {0,0,1,-1};
+const int dy[4] = {1,-1,0,0};
+
+// globals
+int W;
+int H;
+int MYID;
 
 State get_state() {
     State s;
@@ -75,18 +99,84 @@ State get_state() {
         cin >> entityType >> owner >> x >> y >> param1 >> param2; cin.ignore();
         if (entityType == PLAYER) {
             if (owner == MYID) {
-                s.me = Player{ owner, param1, param2 };
+                s.me = Player{ owner, param1, param2, P{x,y} };
             }
             else {
-                s.you = Player{ owner, param1, param2 };
+                s.you = Player{ owner, param1, param2, P{x,y} };
             }
         }
         else {
-            s.bombs.pb( Bomb{ owner, param1, param2 } );
+            s.bombs.pb( Bomb{ owner, param1, param2, P{x,y} } );
         }
     }
     return s;
 }
+
+void print_cells(const State& s) {
+    for(auto& line: s.cells) {
+        cerr << line << endl;
+    }
+    cerr << endl;
+}
+
+void print_pos(const P& p) {
+    cerr << "(" << p.x << "," << p.y << ")" << endl;
+}
+
+bool within_board(const State& s, const P& p) {
+    return 0 <= p.x && p.x <= W-1 && 0<= p.y && p.y <= H-1;
+}
+
+// TODO: bomb check
+bool is_floor(const State& s, const P& p) {
+    return within_board(s, p) && s.cells[p.y][p.x] == '.';
+}
+
+// TODO: bomb check
+bool is_box(const State& s, const P& p) {
+    return within_board(s, p) && s.cells[p.y][p.x] == '0';
+}
+
+bool bombable(const State& s, const P& p) {
+    auto range = s.me.expl_range;
+    REP(d, 4) {
+        REP(i, range) {
+            P p2{p.x + dx[d] * i, p.y + dy[d] * i};
+            if (is_box(s, p2)) return true;
+        }
+    }
+    return false;
+}
+
+P find_nearest_bomb_sight(const State& s) {
+    // DFS
+    queue<P> q;
+    set<P> seen;
+    q.push(s.me.pos);
+    P tmp = s.me.pos;
+    seen.insert(tmp);
+
+    while(!q.empty()) {
+        P p = q.front();
+        q.pop();
+
+        if (bombable(s, p)) {
+            return p;
+        }
+
+        REP(i,4) {
+            P p2 = p;
+            p2.x += dx[i];
+            p2.y += dy[i];
+            if (within_board(s, p2) && is_floor(s, p2) && !seen.count(p2)) {
+                q.push(p2);
+            }
+        }
+    }
+
+    return P{-1,-1};
+}
+
 
 /**
  * Auto-generated code below aims at helping you parse
@@ -99,6 +189,25 @@ int main()
     // game loop
     while (1) {
         State s = get_state();
-        cout << "BOMB 6 5" << endl;
+        print_cells(s);
+
+        const auto pos = find_nearest_bomb_sight(s);
+
+        cerr << "cur pos:";
+        print_pos(s.me.pos);
+        cerr << "target pos:";
+        print_pos(pos);
+
+        if (pos.x == NO_MOVE.x && pos.y == NO_MOVE.y) {
+            cout << "BOMB 6 5" << endl;
+        }
+        else {
+            if (pos == s.me.pos) {
+                cout << "BOMB " << pos.x << " " << pos.y << endl;
+            }
+            else {
+                cout << "MOVE " << pos.x << " " << pos.y << endl;
+            }
+        }
     }
 }
