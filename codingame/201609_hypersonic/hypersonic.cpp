@@ -27,6 +27,65 @@ typedef unsigned long long ull;
 #define mp make_pair
 #define mt make_tuple
 
+/////////////
+// Libraries
+/////////////
+
+class UnionFind
+{
+public:
+    UnionFind(){};
+    ~UnionFind(){};
+
+    void Init(int num_entries) {
+        num_entries_ = num_entries;
+        par_.resize(num_entries_);
+        rank_.resize(num_entries_, 0);
+        for (int i = 0; i < num_entries_; ++i)
+        {
+            par_[i] = i;
+        }
+    }
+    int Find(int x) {
+        if (par_[x] == x)
+        {
+            return x;
+        }
+        else
+        {
+            return par_[x] = Find(par_[x]);
+        }
+    }
+    
+    void Unite(int x, int y) {
+        x = Find(x);
+        y = Find(y);
+        if (x == y) return;
+
+        if (rank_[x] < rank_[y])
+        {
+            par_[x] = y;
+        }
+        else
+        {
+            par_[y] = x;
+            if (rank_[x] == rank_[y])
+            {
+                rank_[x]++;
+            }
+        }
+    }
+    bool Same(int x, int y) {
+        return Find(x) == Find(y);
+    }
+
+private:
+    int num_entries_;
+    std::vector<int> par_;
+    std::vector<int> rank_;
+};
+
+
 struct P {
     int x;
     int y;
@@ -159,6 +218,22 @@ bool is_item(const State& s, const P& p) {
     return ch == ITEM_SIGN;
 }
 
+bool is_cell_in_safe(const State& s, const P& p) {
+    for(auto& b: s.bombs) {
+        if (same_pos(p, b.pos)) return true;
+        REP(d,4) {
+            FOR(i,1,b.expl_range) {
+                P p2{b.pos.x + dx[d] * i, b.pos.y + dy[d] * i};
+                if (!within_board(s, p2)) break;
+                if (is_wall(s, p2)) break;
+                if (is_box(s, p2)) break;
+                if (is_bomb(s, p2)) break;
+                if (same_pos(p, p2)) return false;
+            }
+        }
+    }
+    return true;
+}
 
 State get_state() {
     State s;
@@ -288,6 +363,69 @@ P find_nearest_item(const State& s) {
     return find_object(s, is_item);
 }
 
+P find_safe_pos(const State& s) {
+    // todo: take timer into account
+    return find_object(s, is_cell_in_safe);
+}
+
+bool calc_explosion_time(const State& s_orig) {
+    // TODO
+    State s = s_orig;
+
+    // pos to bomb_idx table
+    map<P, int> pos_to_bomb_idx;
+    REP(i, SIZE(s.bombs)) {
+        auto& b = s.bombs[i];
+        pos_to_bomb_idx[b.pos] = i;
+    }
+
+    // union-find to connect bombs
+    UnionFind uf;
+    uf.Init(SIZE(s.bombs));
+    REP(i, SIZE(s.bombs)) {
+        auto& b = s.bombs[i];
+        REP(d,4) {
+            FOR(i,1,b.expl_range) {
+                P p2{b.pos.x + dx[d] * i, b.pos.y + dy[d] * i};
+                if (!within_board(s, p2)) break;
+                if (is_wall(s, p2)) break;
+                if (is_box(s, p2)) break;
+                if (is_bomb(s, p2)) {
+                    auto idx = pos_to_bomb_idx[p2];
+                    uf.Unite(i, idx);
+                }
+            }
+        }
+    }
+
+    // overwrite bombs' timer
+    map<int,int> ufid_to_timer;
+    REP(i, SIZE(s.bombs)) {
+        auto& b = s.bombs[i];
+        auto ufid = uf.Find(i);
+        if (ufid_to_timer.count(ufid)) {
+            ufid_to_timer[ufid] = min(ufid_to_timer[ufid],b.timer);
+        }
+        else {
+            ufid_to_timer[ufid] = b.timer;
+        }
+    }
+    REP(i, SIZE(s.bombs)) {
+        auto& b = s.bombs[i];
+        auto ufid = uf.Find(i);
+        b.timer = ufid_to_timer[ufid];
+    }
+
+    // todo
+}
+
+
+string make_string_from_pos(const P& pos) {
+    ostringstream sout;
+    sout << pos.x << " " << pos.y;
+    return sout.str();
+}
+
 string decide_action(const State& s) {
     const auto pos = find_nearest_bomb_sight(s);
 
@@ -295,6 +433,15 @@ string decide_action(const State& s) {
     print_pos(s.me.pos);
     cerr << "target pos:";
     print_pos(pos);
+
+    // if in dange cell, escape
+    if (!is_cell_in_safe(s, s.me.pos)) {
+        auto safe_pos = find_safe_pos(s);
+        return "MOVE " + make_string_from_pos(safe_pos) + " escape";
+    }
+    else {
+        return "MOVE " + make_string_from_pos(s.me.pos) + " do_nothing";
+    }
 
     // nothing to do
     if (same_pos(pos, NO_MOVE)) {
@@ -321,9 +468,6 @@ string decide_action(const State& s) {
         // }
     }
 
-    ostringstream sout;
-    sout << "MOVE " << s.me.pos.x << " " << s.me.pos.y;
-    return sout.str();
 }
 
 /**
