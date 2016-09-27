@@ -108,6 +108,7 @@ struct Player {
     int num_of_bombs;
     int expl_range;
     P pos;
+    int num_of_set_bombs;
 };
 
 struct Bomb {
@@ -128,6 +129,10 @@ struct State {
     vector<Player> you;
     vector<Bomb> bombs;
     vector<Item> items;
+};
+
+struct GlobalState {
+    bool at_least_one_bomb_is_set = false;
 };
 
 const char FLOOR_SIGN = '.';
@@ -162,6 +167,7 @@ const int dy[4] = {1,-1,0,0};
 int W;
 int H;
 int MYID;
+GlobalState gs;
 
 bool same_pos(const P& p1, const P& p2) {
     return p1.x == p2.x && p1.y == p2.y;
@@ -222,7 +228,7 @@ bool is_item(const State& s, const P& p) {
 
 bool is_cell_in_safe(const State& s, const P& p) {
     for(auto& b: s.bombs) {
-        if (same_pos(p, b.pos)) return true;
+        if (same_pos(p, b.pos)) return false;
         REP(d,4) {
             FOR(i,1,b.expl_range) {
                 P p2{b.pos.x + dx[d] * i, b.pos.y + dy[d] * i};
@@ -438,6 +444,21 @@ string make_string_from_pos(const P& pos) {
 }
 
 string decide_action(const State& s) {
+    if (!gs.at_least_one_bomb_is_set) {
+        const auto pos = find_nearest_bomb_sight(s);
+        if (pos == s.me.pos) {
+            ostringstream sout;
+            sout << "BOMB " << pos.x << " " << pos.y << " set_bomb";
+            gs.at_least_one_bomb_is_set = true;
+            return sout.str();
+        }
+        else {
+            ostringstream sout;
+            sout << "MOVE " << pos.x << " " << pos.y << " go_to_set_bomb";
+            return sout.str();
+        }
+    }
+
     // if in dange cell, escape
     if (!is_cell_in_safe(s, s.me.pos)) {
         auto safe_pos = find_safe_pos(s);
@@ -448,34 +469,37 @@ string decide_action(const State& s) {
             return "MOVE " + make_string_from_pos(safe_pos) + " escape";
         }
     }
-
-    // find a cell where a bomb should be put
-    const auto pos = find_nearest_bomb_sight(s);
-    if (same_pos(pos, NO_MOVE)) {
-        return "BOMB 6 5 nothing_to_do";
-    }
     else {
-        const auto item = find_nearest_item(s);
-        if (s.me.num_of_bombs == 0 && !same_pos(item, NO_MOVE)) {
-            ostringstream sout;
-            sout << "MOVE " << item.x << " " << item.y << " go_to_get_item";
-            return sout.str();
-        }
-        else {
-            if (pos == s.me.pos) {
-                ostringstream sout;
-                sout << "BOMB " << pos.x << " " << pos.y << " set_bomb";
-                return sout.str();
-            }
-            else {
-                ostringstream sout;
-                sout << "MOVE " << pos.x << " " << pos.y << " go_to_set_bomb";
-                return sout.str();
-            }
-        }
+        // do nothing
+        return "MOVE " + make_string_from_pos(s.me.pos) + " do_nothing";
     }
 
-    return "MOVE " + make_string_from_pos(s.me.pos) + " error";
+    // // find a cell where a bomb should be put
+    // const auto pos = find_nearest_bomb_sight(s);
+    // if (same_pos(pos, NO_MOVE)) {
+    //     return "BOMB 6 5 nothing_to_do";
+    // }
+    // else {
+    //     const auto item = find_nearest_item(s);
+    //     if (s.me.num_of_bombs == 0 && !same_pos(item, NO_MOVE)) {
+    //         ostringstream sout;
+    //         sout << "MOVE " << item.x << " " << item.y << " go_to_get_item";
+    //         return sout.str();
+    //     }
+    //     else {
+    //         if (pos == s.me.pos) {
+    //             ostringstream sout;
+    //             sout << "BOMB " << pos.x << " " << pos.y << " set_bomb";
+    //             return sout.str();
+    //         }
+    //         else {
+    //             ostringstream sout;
+    //             sout << "MOVE " << pos.x << " " << pos.y << " go_to_set_bomb";
+    //             return sout.str();
+    //         }
+    //     }
+    // }
+
     
 }
 
