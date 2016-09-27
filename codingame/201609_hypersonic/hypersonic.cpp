@@ -147,7 +147,7 @@ bool is_box(const State& s, const P& p) {
 }
 
 // whether p is a box which is not targeted by any bomb
-bool is_bombable_box(const State& s, const P& p) {
+bool is_untargeted_box(const State& s, const P& p) {
     if (!within_board(s, p)) return false;
     auto ch = s.cells[p.y][p.x];
     return (ch == BOX_SIGN1 || ch == BOX_SIGN2);
@@ -211,7 +211,7 @@ State get_state() {
                 if (!within_board(s, p2)) break;
                 if (is_wall(s, p2)) break;
                 if (is_bomb(s, p2)) break;
-                if (is_bombable_box(s, p2)) {
+                if (is_untargeted_box(s, p2)) {
                     if (s.cells[p2.y][p2.x] == BOX_SIGN1) {
                         s.cells[p2.y][p2.x] = DBOX_SIGN1;
                     }
@@ -228,8 +228,7 @@ State get_state() {
 }
 
 
-// 
-bool bombable(const State& s, const P& p) {
+bool box_will_be_destroyed_by_putting_bomb(const State& s, const P& p) {
     // can't put a bomb!
     if (!is_floor(s, p)) return false;
     auto range = s.me.expl_range;
@@ -282,7 +281,7 @@ P find_object(const State& s, std::function<bool(const State& s, const P& p)> fu
 }
 
 P find_nearest_bomb_sight(const State& s) {
-    return find_object(s, bombable);
+    return find_object(s, box_will_be_destroyed_by_putting_bomb);
 }
 
 P find_nearest_item(const State& s) {
@@ -308,21 +307,23 @@ string decide_action(const State& s) {
             sout << "MOVE " << item.x << " " << item.y << " go_to_get_item";
             return sout.str();
         }
-        else {
-            if (pos == s.me.pos) {
-                ostringstream sout;
-                sout << "BOMB " << pos.x << " " << pos.y << " set_bomb";
-                return sout.str();
-            }
-            else {
-                ostringstream sout;
-                sout << "MOVE " << pos.x << " " << pos.y << " go_to_set_bomb";
-                return sout.str();
-            }
-        }
+        // else {
+        //     if (pos == s.me.pos) {
+        //         ostringstream sout;
+        //         sout << "BOMB " << pos.x << " " << pos.y << " set_bomb";
+        //         return sout.str();
+        //     }
+        //     else {
+        //         ostringstream sout;
+        //         sout << "MOVE " << pos.x << " " << pos.y << " go_to_set_bomb";
+        //         return sout.str();
+        //     }
+        // }
     }
 
-    return "MOVE 0 0 error";
+    ostringstream sout;
+    sout << "MOVE " << s.me.pos.x << " " << s.me.pos.y;
+    return sout.str();
 }
 
 /**
