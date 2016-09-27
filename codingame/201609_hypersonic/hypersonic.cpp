@@ -148,6 +148,8 @@ const int ITEM = 2;
 const int ME = 0;
 const int YOU = 1;
 
+const int TIMER_MAX = 8;
+
 const P NO_MOVE = P{-1,-1};
 
 const int ITEM_EXTRA_RANGE = 1;
@@ -303,20 +305,6 @@ State get_state() {
 }
 
 
-bool box_will_be_destroyed_by_putting_bomb(const State& s, const P& p) {
-    // can't put a bomb!
-    if (!is_floor(s, p)) return false;
-    auto range = s.me.expl_range;
-    REP(d, 4) {
-        REP(i, range) {
-            P p2{p.x + dx[d] * i, p.y + dy[d] * i};
-            if (is_wall(s, p2)) break;
-            if (is_box(s, p2)) return true;
-        }
-    }
-    return false;
-}
-
 P find_object(const State& s, std::function<bool(const State& s, const P& p)> func)
 {
     // BFS
@@ -355,10 +343,6 @@ P find_object(const State& s, std::function<bool(const State& s, const P& p)> fu
     return P{-1,-1};
 }
 
-P find_nearest_bomb_sight(const State& s) {
-    return find_object(s, box_will_be_destroyed_by_putting_bomb);
-}
-
 P find_nearest_item(const State& s) {
     return find_object(s, is_item);
 }
@@ -366,6 +350,33 @@ P find_nearest_item(const State& s) {
 P find_safe_pos(const State& s) {
     // todo: take timer into account
     return find_object(s, is_cell_in_safe);
+}
+
+bool box_will_be_destroyed_by_putting_bomb(const State& s, const P& p) {
+    // bomb can put only on floor
+    if (!is_floor(s, p)) return false;
+
+    // avoid suicide
+    State s_copy = s;
+    s_copy.bombs.pb( Bomb{ s.me.id, TIMER_MAX, s.me.expl_range, P{s.me.pos.x,s.me.pos.y} } );
+    auto safe_pos = find_safe_pos(s_copy);
+    if (same_pos(safe_pos, NO_MOVE)) {
+        return false;
+    }
+
+    auto range = s.me.expl_range;
+    REP(d, 4) {
+        REP(i, range) {
+            P p2{p.x + dx[d] * i, p.y + dy[d] * i};
+            if (is_wall(s, p2)) break;
+            if (is_box(s, p2)) return true;
+        }
+    }
+    return false;
+}
+
+P find_nearest_bomb_sight(const State& s) {
+    return find_object(s, box_will_be_destroyed_by_putting_bomb);
 }
 
 bool calc_explosion_time(const State& s_orig) {
@@ -427,13 +438,6 @@ string make_string_from_pos(const P& pos) {
 }
 
 string decide_action(const State& s) {
-    const auto pos = find_nearest_bomb_sight(s);
-
-    cerr << "cur pos:";
-    print_pos(s.me.pos);
-    cerr << "target pos:";
-    print_pos(pos);
-
     // if in dange cell, escape
     if (!is_cell_in_safe(s, s.me.pos)) {
         auto safe_pos = find_safe_pos(s);
@@ -444,11 +448,9 @@ string decide_action(const State& s) {
             return "MOVE " + make_string_from_pos(safe_pos) + " escape";
         }
     }
-    else {
-        return "MOVE " + make_string_from_pos(s.me.pos) + " do_nothing";
-    }
 
-    // nothing to do
+    // find a cell where a bomb should be put
+    const auto pos = find_nearest_bomb_sight(s);
     if (same_pos(pos, NO_MOVE)) {
         return "BOMB 6 5 nothing_to_do";
     }
@@ -459,20 +461,22 @@ string decide_action(const State& s) {
             sout << "MOVE " << item.x << " " << item.y << " go_to_get_item";
             return sout.str();
         }
-        // else {
-        //     if (pos == s.me.pos) {
-        //         ostringstream sout;
-        //         sout << "BOMB " << pos.x << " " << pos.y << " set_bomb";
-        //         return sout.str();
-        //     }
-        //     else {
-        //         ostringstream sout;
-        //         sout << "MOVE " << pos.x << " " << pos.y << " go_to_set_bomb";
-        //         return sout.str();
-        //     }
-        // }
+        else {
+            if (pos == s.me.pos) {
+                ostringstream sout;
+                sout << "BOMB " << pos.x << " " << pos.y << " set_bomb";
+                return sout.str();
+            }
+            else {
+                ostringstream sout;
+                sout << "MOVE " << pos.x << " " << pos.y << " go_to_set_bomb";
+                return sout.str();
+            }
+        }
     }
 
+    return "MOVE " + make_string_from_pos(s.me.pos) + " error";
+    
 }
 
 /**
