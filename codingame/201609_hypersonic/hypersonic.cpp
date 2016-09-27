@@ -289,6 +289,42 @@ P find_nearest_item(const State& s) {
     return find_object(s, is_item);
 }
 
+string decide_action(const State& s) {
+    const auto pos = find_nearest_bomb_sight(s);
+
+    cerr << "cur pos:";
+    print_pos(s.me.pos);
+    cerr << "target pos:";
+    print_pos(pos);
+
+    // nothing to do
+    if (same_pos(pos, NO_MOVE)) {
+        return "BOMB 6 5 nothing_to_do";
+    }
+    else {
+        const auto item = find_nearest_item(s);
+        if (s.me.num_of_bombs == 0 && !same_pos(item, NO_MOVE)) {
+            ostringstream sout;
+            sout << "MOVE " << item.x << " " << item.y << " go_to_get_item";
+            return sout.str();
+        }
+        else {
+            if (pos == s.me.pos) {
+                ostringstream sout;
+                sout << "BOMB " << pos.x << " " << pos.y << " set_bomb";
+                return sout.str();
+            }
+            else {
+                ostringstream sout;
+                sout << "MOVE " << pos.x << " " << pos.y << " go_to_set_bomb";
+                return sout.str();
+            }
+        }
+    }
+
+    return "MOVE 0 0 error";
+}
+
 /**
  * Auto-generated code below aims at helping you parse
  * the standard input according to the problem statement.
@@ -301,33 +337,8 @@ int main()
     while (1) {
         State s = get_state();
         print_cells(s);
-
-        const auto pos = find_nearest_bomb_sight(s);
-
-        cerr << "cur pos:";
-        print_pos(s.me.pos);
-        cerr << "target pos:";
-        print_pos(pos);
-
-
-        // nothing to do
-        if (same_pos(pos, NO_MOVE)) {
-            cout << "BOMB 6 5" << endl;
-        }
-        else {
-            const auto item = find_nearest_item(s);
-            if (s.me.num_of_bombs == 0 && !same_pos(item, NO_MOVE)) {
-                cout << "MOVE " << item.x << " " << item.y << endl;
-            }
-            else {
-                if (pos == s.me.pos) {
-                    cout << "BOMB " << pos.x << " " << pos.y << endl;
-                }
-                else {
-                    cout << "MOVE " << pos.x << " " << pos.y << endl;
-                }
-            }
-        }
+        auto ret = decide_action(s);
+        cout << ret << endl;
     }
 }
 
