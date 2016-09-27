@@ -437,7 +437,12 @@ string decide_action(const State& s) {
     // if in dange cell, escape
     if (!is_cell_in_safe(s, s.me.pos)) {
         auto safe_pos = find_safe_pos(s);
-        return "MOVE " + make_string_from_pos(safe_pos) + " escape";
+        if (same_pos(safe_pos, NO_MOVE)) {
+            return "MOVE " + make_string_from_pos(s.me.pos) + " cant_escape";
+        }
+        else {
+            return "MOVE " + make_string_from_pos(safe_pos) + " escape";
+        }
     }
     else {
         return "MOVE " + make_string_from_pos(s.me.pos) + " do_nothing";
