@@ -66,7 +66,7 @@ struct Item {
 struct State {
     vector<string> cells;
     Player me;
-    Player you;
+    vector<Player> you;
     vector<Bomb> bombs;
     vector<Item> items;
 };
@@ -181,7 +181,7 @@ State get_state() {
                 s.me = Player{ owner, param1, param2, P{x,y} };
             }
             else {
-                s.you = Player{ owner, param1, param2, P{x,y} };
+                s.you.pb( Player{ owner, param1, param2, P{x,y} } );
             }
         }
         else if (entityType == BOMB) {
