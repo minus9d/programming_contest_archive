@@ -323,8 +323,12 @@ P find_object(const State& s, std::function<bool(const State& s, const P& p)> fu
     queue<P> q;
     set<P> seen;
     q.push(s.me.pos);
-    P tmp = s.me.pos;
-    seen.insert(tmp);
+    P ini = s.me.pos;
+    seen.insert(ini);
+
+    // for backtrace
+    map<P, P> parents;
+    parents[ini] = NO_MOVE;
 
     int loop_num = 0;
     while(!q.empty()) {
@@ -332,6 +336,13 @@ P find_object(const State& s, std::function<bool(const State& s, const P& p)> fu
         q.pop();
 
         if (func(s, p)) {
+            if (same_pos(ini,p)) 
+                return p;
+
+            // backtrace and return the initial move
+            while(!same_pos(parents[p],ini)) {
+                p = parents[p];
+            }
             return p;
         }
 
@@ -342,6 +353,7 @@ P find_object(const State& s, std::function<bool(const State& s, const P& p)> fu
             if (within_board(s, p2) && is_floor(s, p2) && !seen.count(p2)) {
                 q.push(p2);
                 seen.insert(p2);
+                parents[p2] = p;
             }
         }
         ++loop_num;
@@ -446,63 +458,36 @@ bool calc_explosion_time(const State& s_orig) {
 
 
 string decide_action(const State& s) {
-    if (!gs.at_least_one_bomb_is_set) {
-        const auto pos = find_nearest_bomb_sight(s);
+    // if in dange cell, escape
+    if (!is_cell_in_safe(s, s.me.pos)) {
+        auto safe_pos = find_safe_pos(s);
+        if (same_pos(safe_pos, NO_MOVE)) {
+            return "MOVE " + ptos(s.me.pos) + " fin";
+        }
+        else {
+            return "MOVE " + ptos(safe_pos) + " escape";
+        }
+    }
+
+    const auto pos = find_nearest_bomb_sight(s);
+    if (!same_pos(pos, NO_MOVE)) {
         if (pos == s.me.pos) {
             ostringstream sout;
             sout << "BOMB " << pos.x << " " << pos.y << " set_bomb";
             gs.at_least_one_bomb_is_set = true;
             return sout.str();
         }
-        else {
-            ostringstream sout;
-            sout << "MOVE " << pos.x << " " << pos.y << " go_to_set_bomb";
-            return sout.str();
+
+        if (!is_cell_in_safe(s, pos)) {
+            // do nothing
+            return "MOVE " + ptos(s.me.pos) + " freeze";
         }
+
+        return "MOVE " + ptos(pos) + " go_to_set_bomb";
     }
 
-    // if in dange cell, escape
-    if (!is_cell_in_safe(s, s.me.pos)) {
-        auto safe_pos = find_safe_pos(s);
-        if (same_pos(safe_pos, NO_MOVE)) {
-            return "MOVE " + ptos(s.me.pos) + " cant_escape";
-        }
-        else {
-            return "MOVE " + ptos(safe_pos) + " escape";
-        }
-    }
-    else {
-        // do nothing
-        return "MOVE " + ptos(s.me.pos) + " do_nothing";
-    }
-
-    // // find a cell where a bomb should be put
-    // const auto pos = find_nearest_bomb_sight(s);
-    // if (same_pos(pos, NO_MOVE)) {
-    //     return "BOMB 6 5 nothing_to_do";
-    // }
-    // else {
-    //     const auto item = find_nearest_item(s);
-    //     if (s.me.num_of_bombs == 0 && !same_pos(item, NO_MOVE)) {
-    //         ostringstream sout;
-    //         sout << "MOVE " << item.x << " " << item.y << " go_to_get_item";
-    //         return sout.str();
-    //     }
-    //     else {
-    //         if (pos == s.me.pos) {
-    //             ostringstream sout;
-    //             sout << "BOMB " << pos.x << " " << pos.y << " set_bomb";
-    //             return sout.str();
-    //         }
-    //         else {
-    //             ostringstream sout;
-    //             sout << "MOVE " << pos.x << " " << pos.y << " go_to_set_bomb";
-    //             return sout.str();
-    //         }
-    //     }
-    // }
-
-    
+    // do nothing
+    return "MOVE " + ptos(s.me.pos) + " do_nothing";
 }
 
 /**
