@@ -169,7 +169,7 @@ int H;
 int MYID;
 GlobalState gs;
 
-string make_string_from_pos(const P& pos) {
+string ptos(const P& pos) {
     ostringstream sout;
     sout << pos.x << " " << pos.y;
     return sout.str();
@@ -465,15 +465,15 @@ string decide_action(const State& s) {
     if (!is_cell_in_safe(s, s.me.pos)) {
         auto safe_pos = find_safe_pos(s);
         if (same_pos(safe_pos, NO_MOVE)) {
-            return "MOVE " + make_string_from_pos(s.me.pos) + " cant_escape";
+            return "MOVE " + ptos(s.me.pos) + " cant_escape";
         }
         else {
-            return "MOVE " + make_string_from_pos(safe_pos) + " escape";
+            return "MOVE " + ptos(safe_pos) + " escape";
         }
     }
     else {
         // do nothing
-        return "MOVE " + make_string_from_pos(s.me.pos) + " do_nothing";
+        return "MOVE " + ptos(s.me.pos) + " do_nothing";
     }
 
     // // find a cell where a bomb should be put
