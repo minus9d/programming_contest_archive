@@ -169,6 +169,12 @@ int H;
 int MYID;
 GlobalState gs;
 
+string make_string_from_pos(const P& pos) {
+    ostringstream sout;
+    sout << pos.x << " " << pos.y;
+    return sout.str();
+}
+
 bool same_pos(const P& p1, const P& p2) {
     return p1.x == p2.x && p1.y == p2.y;
 }
@@ -364,7 +370,9 @@ bool box_will_be_destroyed_by_putting_bomb(const State& s, const P& p) {
 
     // avoid suicide
     State s_copy = s;
-    s_copy.bombs.pb( Bomb{ s.me.id, TIMER_MAX, s.me.expl_range, P{s.me.pos.x,s.me.pos.y} } );
+    s_copy.bombs.pb( Bomb{ s.me.id, TIMER_MAX, s.me.expl_range, p } );
+    s_copy.me.pos = p;
+
     auto safe_pos = find_safe_pos(s_copy);
     if (same_pos(safe_pos, NO_MOVE)) {
         return false;
@@ -436,12 +444,6 @@ bool calc_explosion_time(const State& s_orig) {
     // todo
 }
 
-
-string make_string_from_pos(const P& pos) {
-    ostringstream sout;
-    sout << pos.x << " " << pos.y;
-    return sout.str();
-}
 
 string decide_action(const State& s) {
     if (!gs.at_least_one_bomb_is_set) {
