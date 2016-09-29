@@ -85,6 +85,9 @@ private:
     std::vector<int> rank_;
 };
 
+/////////////
+// Structs
+/////////////
 
 struct P {
     int x;
@@ -135,6 +138,10 @@ struct GlobalState {
     bool at_least_one_bomb_is_set = false;
 };
 
+/////////////
+// Consts
+/////////////
+
 const char FLOOR_SIGN = '.';
 const char BOX_SIGN1 = '1';
 const char BOX_SIGN2 = '2';
@@ -163,21 +170,18 @@ const int ITEM_EXTRA_BOMB = 2;
 const int dx[4] = {0,0,1,-1};
 const int dy[4] = {1,-1,0,0};
 
-// globals
+/////////////
+// Globals
+/////////////
+
 int W;
 int H;
 int MYID;
 GlobalState gs;
 
-string ptos(const P& pos) {
-    ostringstream sout;
-    sout << pos.x << " " << pos.y;
-    return sout.str();
-}
-
-bool same_pos(const P& p1, const P& p2) {
-    return p1.x == p2.x && p1.y == p2.y;
-}
+/////////////
+// for debug
+/////////////
 
 void print_cells(const State& s) {
     for(auto& line: s.cells) {
@@ -190,9 +194,27 @@ void print_pos(const P& p) {
     cerr << "(" << p.x << "," << p.y << ")" << endl;
 }
 
+//////////////////////////
+// simple functions
+//////////////////////////
+
+string ptos(const P& pos) {
+    ostringstream sout;
+    sout << pos.x << " " << pos.y;
+    return sout.str();
+}
+
+bool same_pos(const P& p1, const P& p2) {
+    return p1.x == p2.x && p1.y == p2.y;
+}
+
 bool within_board(const State& s, const P& p) {
     return 0 <= p.x && p.x <= W-1 && 0<= p.y && p.y <= H-1;
 }
+
+//////////////////////////
+// cell type
+//////////////////////////
 
 // TODO: bomb check
 bool is_floor(const State& s, const P& p) {
@@ -232,22 +254,9 @@ bool is_item(const State& s, const P& p) {
     return ch == ITEM_SIGN;
 }
 
-bool is_cell_in_safe(const State& s, const P& p) {
-    for(auto& b: s.bombs) {
-        if (same_pos(p, b.pos)) return false;
-        REP(d,4) {
-            FOR(i,1,b.expl_range) {
-                P p2{b.pos.x + dx[d] * i, b.pos.y + dy[d] * i};
-                if (!within_board(s, p2)) break;
-                if (is_wall(s, p2)) break;
-                if (is_box(s, p2)) break;
-                if (is_bomb(s, p2)) break;
-                if (same_pos(p, p2)) return false;
-            }
-        }
-    }
-    return true;
-}
+/////////
+// input
+/////////
 
 State get_state() {
     State s;
@@ -316,6 +325,27 @@ State get_state() {
     return s;
 }
 
+
+//////////////////////////
+// complex functions
+//////////////////////////
+
+bool is_cell_in_safe(const State& s, const P& p) {
+    for(auto& b: s.bombs) {
+        if (same_pos(p, b.pos)) return false;
+        REP(d,4) {
+            FOR(i,1,b.expl_range) {
+                P p2{b.pos.x + dx[d] * i, b.pos.y + dy[d] * i};
+                if (!within_board(s, p2)) break;
+                if (is_wall(s, p2)) break;
+                if (is_box(s, p2)) break;
+                if (is_bomb(s, p2)) break;
+                if (same_pos(p, p2)) return false;
+            }
+        }
+    }
+    return true;
+}
 
 P find_object(const State& s, std::function<bool(const State& s, const P& p)> func)
 {
