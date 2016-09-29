@@ -213,26 +213,26 @@ bool within_board(const State& s, const P& p) {
 }
 
 //////////////////////////
-// cell type
+// cell type check
 //////////////////////////
 
 // TODO: bomb check
-bool is_floor(const State& s, const P& p) {
+bool is_floor_cell(const State& s, const P& p) {
     if (!within_board(s, p)) return false;
     auto ch = s.cells[p.y][p.x];
     return ch == FLOOR_SIGN || ch == ITEM_SIGN;
 }
 
-bool is_wall(const State& s, const P& p) {
+bool is_wall_cell(const State& s, const P& p) {
     return within_board(s, p) && s.cells[p.y][p.x] == WALL_SIGN;
 }
 
-bool is_bomb(const State& s, const P& p) {
+bool is_bomb_cell(const State& s, const P& p) {
     return within_board(s, p) && s.cells[p.y][p.x] == BOMB_SIGN;
 }
 
 // TODO: bomb check
-bool is_box(const State& s, const P& p) {
+bool is_box_cell(const State& s, const P& p) {
     if (!within_board(s, p)) return false;
     auto ch = s.cells[p.y][p.x];
     return (ch == BOX_SIGN1
@@ -242,13 +242,13 @@ bool is_box(const State& s, const P& p) {
 }
 
 // whether p is a box which is not targeted by any bomb
-bool is_untargeted_box(const State& s, const P& p) {
+bool is_untargeted_box_cell(const State& s, const P& p) {
     if (!within_board(s, p)) return false;
     auto ch = s.cells[p.y][p.x];
     return (ch == BOX_SIGN1 || ch == BOX_SIGN2);
 }
 
-bool is_item(const State& s, const P& p) {
+bool is_item_cell(const State& s, const P& p) {
     if (!within_board(s, p)) return false;
     auto ch = s.cells[p.y][p.x];
     return ch == ITEM_SIGN;
@@ -307,9 +307,9 @@ State get_state() {
             FOR(i,1,range) {
                 P p2{b.pos.x + dx[d] * i, b.pos.y + dy[d] * i};
                 if (!within_board(s, p2)) break;
-                if (is_wall(s, p2)) break;
-                if (is_bomb(s, p2)) break;
-                if (is_untargeted_box(s, p2)) {
+                if (is_wall_cell(s, p2)) break;
+                if (is_bomb_cell(s, p2)) break;
+                if (is_untargeted_box_cell(s, p2)) {
                     if (s.cells[p2.y][p2.x] == BOX_SIGN1) {
                         s.cells[p2.y][p2.x] = DBOX_SIGN1;
                     }
@@ -330,16 +330,16 @@ State get_state() {
 // complex functions
 //////////////////////////
 
-bool is_cell_in_safe(const State& s, const P& p) {
+bool is_out_of_blast_cell(const State& s, const P& p) {
     for(auto& b: s.bombs) {
         if (same_pos(p, b.pos)) return false;
         REP(d,4) {
             FOR(i,1,b.expl_range) {
                 P p2{b.pos.x + dx[d] * i, b.pos.y + dy[d] * i};
                 if (!within_board(s, p2)) break;
-                if (is_wall(s, p2)) break;
-                if (is_box(s, p2)) break;
-                if (is_bomb(s, p2)) break;
+                if (is_wall_cell(s, p2)) break;
+                if (is_box_cell(s, p2)) break;
+                if (is_bomb_cell(s, p2)) break;
                 if (same_pos(p, p2)) return false;
             }
         }
@@ -380,7 +380,7 @@ P find_object(const State& s, std::function<bool(const State& s, const P& p)> fu
             P p2 = p;
             p2.x += dx[i];
             p2.y += dy[i];
-            if (within_board(s, p2) && is_floor(s, p2) && !seen.count(p2)) {
+            if (within_board(s, p2) && is_floor_cell(s, p2) && !seen.count(p2)) {
                 q.push(p2);
                 seen.insert(p2);
                 parents[p2] = p;
@@ -398,24 +398,24 @@ P find_object(const State& s, std::function<bool(const State& s, const P& p)> fu
 }
 
 P find_nearest_item(const State& s) {
-    return find_object(s, is_item);
+    return find_object(s, is_item_cell);
 }
 
-P find_safe_pos(const State& s) {
+P find_nearest_safe_pos(const State& s) {
     // todo: take timer into account
-    return find_object(s, is_cell_in_safe);
+    return find_object(s, is_out_of_blast_cell);
 }
 
-bool box_will_be_destroyed_by_putting_bomb(const State& s, const P& p) {
+bool is_cell_where_bomb_will_destroy_box(const State& s, const P& p) {
     // bomb can put only on floor
-    if (!is_floor(s, p)) return false;
+    if (!is_floor_cell(s, p)) return false;
 
     // avoid suicide
     State s_copy = s;
     s_copy.bombs.pb( Bomb{ s.me.id, TIMER_MAX, s.me.expl_range, p } );
     s_copy.me.pos = p;
 
-    auto safe_pos = find_safe_pos(s_copy);
+    auto safe_pos = find_nearest_safe_pos(s_copy);
     if (same_pos(safe_pos, NO_MOVE)) {
         return false;
     }
@@ -424,15 +424,15 @@ bool box_will_be_destroyed_by_putting_bomb(const State& s, const P& p) {
     REP(d, 4) {
         REP(i, range) {
             P p2{p.x + dx[d] * i, p.y + dy[d] * i};
-            if (is_wall(s, p2)) break;
-            if (is_box(s, p2)) return true;
+            if (is_wall_cell(s, p2)) break;
+            if (is_box_cell(s, p2)) return true;
         }
     }
     return false;
 }
 
 P find_nearest_bomb_sight(const State& s) {
-    return find_object(s, box_will_be_destroyed_by_putting_bomb);
+    return find_object(s, is_cell_where_bomb_will_destroy_box);
 }
 
 bool calc_explosion_time(const State& s_orig) {
@@ -455,9 +455,9 @@ bool calc_explosion_time(const State& s_orig) {
             FOR(i,1,b.expl_range) {
                 P p2{b.pos.x + dx[d] * i, b.pos.y + dy[d] * i};
                 if (!within_board(s, p2)) break;
-                if (is_wall(s, p2)) break;
-                if (is_box(s, p2)) break;
-                if (is_bomb(s, p2)) {
+                if (is_wall_cell(s, p2)) break;
+                if (is_box_cell(s, p2)) break;
+                if (is_bomb_cell(s, p2)) {
                     auto idx = pos_to_bomb_idx[p2];
                     uf.Unite(i, idx);
                 }
@@ -489,8 +489,8 @@ bool calc_explosion_time(const State& s_orig) {
 
 string decide_action(const State& s) {
     // if in dange cell, escape
-    if (!is_cell_in_safe(s, s.me.pos)) {
-        auto safe_pos = find_safe_pos(s);
+    if (!is_out_of_blast_cell(s, s.me.pos)) {
+        auto safe_pos = find_nearest_safe_pos(s);
         if (same_pos(safe_pos, NO_MOVE)) {
             return "MOVE " + ptos(s.me.pos) + " fin";
         }
@@ -508,7 +508,7 @@ string decide_action(const State& s) {
             return sout.str();
         }
 
-        if (!is_cell_in_safe(s, pos)) {
+        if (!is_out_of_blast_cell(s, pos)) {
             // do nothing
             return "MOVE " + ptos(s.me.pos) + " freeze";
         }
