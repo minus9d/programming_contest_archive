@@ -11,4 +11,5 @@
 
 | No. | A |B |C |D |E |F |G |
 |:---:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| Intel Code Challenge Elimination |◎|◎|◎|◎|- |- | |
 | Intel Code Challenge Final |◎|□|◎|◎|- |- |- |
