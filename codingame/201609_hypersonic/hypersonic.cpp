@@ -85,9 +85,9 @@ private:
     std::vector<int> rank_;
 };
 
-/////////////
-// Structs
-/////////////
+/////////////////////
+// Structs and Types
+/////////////////////
 
 struct P {
     int x;
@@ -137,6 +137,12 @@ struct State {
 struct GlobalState {
     bool at_least_one_bomb_is_set = false;
 };
+
+// 0: not in blast
+// 1: blasts at the start of this round
+// 2: blasts at the start of next round
+// 3: ....
+using ExplosionTimes = vector<vector<char>>;
 
 /////////////
 // Consts
@@ -210,6 +216,10 @@ bool same_pos(const P& p1, const P& p2) {
 
 bool within_board(const State& s, const P& p) {
     return 0 <= p.x && p.x <= W-1 && 0<= p.y && p.y <= H-1;
+}
+
+ExplosionTimes create_empty_explosion_times() {
+    return vector<vector<char>>(H, vector<char>(W));
 }
 
 //////////////////////////
@@ -329,6 +339,10 @@ State get_state() {
 //////////////////////////
 // complex functions
 //////////////////////////
+
+bool can_escape(const State& s, const P& p) {
+}
+
 
 bool is_out_of_blast_cell(const State& s, const P& p) {
     for(auto& b: s.bombs) {
@@ -483,7 +497,30 @@ bool calc_explosion_time(const State& s_orig) {
         b.timer = ufid_to_timer[ufid];
     }
 
-    // todo
+    auto explosion_times = create_empty_explosion_times();
+    for (auto& b : s.bombs) {
+        REP(d, 4) {
+            REP(i, b.expl_range) {
+                P p2{ b.pos.x + dx[d] * i, b.pos.y + dy[d] * i };
+                if (!within_board(s, p2)) break;
+                if (is_wall_cell(s, p2)) break;
+                if (is_box_cell(s, p2)) break;
+                if (is_bomb_cell(s, p2)) break;
+
+                if (explosion_times[p2.y][p2.x]) {
+                    explosion_times[p2.y][p2.x] = min(explosion_times[p2.y][p2.x], (char)b.timer);
+                }
+                else {
+                    explosion_times[p2.y][p2.x] = b.timer;
+                }
+            }
+        }
+    }
+}
+
+bool is_safe_cell(const State& s, const P& p) {
+    if (is_out_of_blast_cell(s, p)) return true;
+
 }
 
 
