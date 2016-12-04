@@ -48,7 +48,7 @@ public:
     }
 
     // a <-> bに両方向のエッジを張る
-    void add_undir_edge(int a, int b, int cost) {
+    void add_undir_edge(int a, int b, T cost) {
         add_dir_edge(a, b, cost);
         add_dir_edge(b, a, cost);
     }
