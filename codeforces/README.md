@@ -16,5 +16,6 @@
 
 | No. | A |B |C |D |E |F |G |
 |:---:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
-| Intel Code Challenge Elimination |◎|◎|◎|◎|- |- | |
-| Intel Code Challenge Final |◎|□|◎|◎|- |- |- |
+| Intel Code Challenge 2016 Elimination |◎|◎|◎|◎|- |- | |
+| Intel Code Challenge 2016 Final |◎|□|◎|◎|- |- |- |
+| Tinkoff Challenge 2017 - Final Round |◎|◎|◎|- |- |- |- |
