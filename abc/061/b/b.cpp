@@ -1,0 +1,49 @@
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <cassert>
+#include <cmath>
+#include <climits>
+#include <cstdio>
+#include <vector>
+#include <map>
+#include <set>
+#include <queue>
+#include <deque>
+#include <algorithm>
+#include <functional>
+#include <numeric>
+#include <iomanip>
+
+using namespace std;
+typedef unsigned int uint;
+typedef long long ll;
+typedef unsigned long long ull;
+
+#define REP(i,n) for(int i = 0; i < (int)(n); ++i)
+#define FOR(i,a,b) for(int i = (a); i < (int)(b); ++i)
+#define ALL(c) (c).begin(), (c).end()
+#define SIZE(v) ((int)v.size())
+
+#define pb push_back
+#define mp make_pair
+#define mt make_tuple
+
+int main(void)
+{
+    cin.sync_with_stdio(false);
+    int N, M;
+    cin >> N >> M;
+    vector<int> ans(N);
+    REP(m, M) {
+        int a, b;
+        cin >> a >> b;
+        --a; --b;
+        ++ans[a]; ++ans[b];
+    }
+    REP(n, N) {
+        cout << ans[n] << endl;
+    }
+
+    return 0;
+}
