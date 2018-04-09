@@ -34,7 +34,7 @@ typedef unsigned long long ull;
 
 ll INF = 1e18;
 
-// S: これまでたどった頂点  v: 今いる頂点
+// S: これまでたどった頂点  v: 今いる頂点   V: 頂点数
 ll rec(int S, int v,
         const int V,
         vector<vector<ll>>& dp, const vector<vector<ll>>& dist) {
