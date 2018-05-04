@@ -1,6 +1,9 @@
 ### TopCoder
 
-解説へのリンク：[Algorithm Problem Set Analysis - TopCoder Wiki](http://apps.topcoder.com/wiki/display/tc/Algorithm+Problem+Set+Analysis)
+* 解説へのリンク
+  * [Data Science Editorials – topcoder](https://www.topcoder.com/community/data-science/data-science-editorials/)
+  * [Algorithm Problem Set Analysis - TopCoder Wiki (obsolete?)](http://apps.topcoder.com/wiki/display/tc/Algorithm+Problem+Set+Analysis)
+  
 
 | No. |One|Two|Three|
 |:---:|:-:|:-:|:-:|
@@ -9,6 +12,7 @@
 | TCO15R2C |×|-|-|
 | TCO16R1A |◎|◎|-|
 | TCO17R1A |◎|〇|-|
+| TCO18R1B |◎|〇|〇|
 
 | No. |One|Two|Three|
 |:---:|:-:|:-:|:-:|
