@@ -17,6 +17,7 @@
 #include <string>
 #include <vector>
 
+
 using namespace std;
 typedef unsigned int uint;
 typedef long long ll;
@@ -31,20 +32,40 @@ typedef unsigned long long ull;
 #define mp make_pair
 #define mt make_tuple
 
-void solve() {
-    int N, P;
-    cin >> N >> P;
-}
-
 int main(void)
 {
     cin.sync_with_stdio(false);
-    int T;
-    cin >> T;
-    REP(t, T) {
-        cout << "Case #" << (t+1) << ": ";
-        solve();
-        cout << endl;
+    int N;
+    string S;
+    cin >> N >> S;
+
+    vector<int> west(N);
+    int i = 0;
+    REP(n, N){
+        if (S[n] == 'W') ++i;
+        west[n] = i;
     }
+
+    vector<int> east(N);
+    int j = 0;
+    for(int n = N-1; n >= 0; --n) {
+        if (S[n] == 'E') ++j;
+        east[n] = j;
+    }
+
+    // REP(n,N) cout << west[n] << " ";
+    // cout << endl;
+    // REP(n,N) cout << east[n] << " ";
+    // cout << endl;
+
+    int ans = 1e9;
+    REP(n, N) {
+        int t = 0;
+        if (n != 0) t += west[n-1];
+        if (n != N-1) t += east[n+1];
+        ans = min(ans, t);
+    }
+    cout << ans << endl;
+
     return 0;
 }
