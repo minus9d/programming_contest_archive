@@ -3,7 +3,7 @@
 * 解説へのリンク
   * [Data Science Editorials – topcoder](https://www.topcoder.com/community/data-science/data-science-editorials/)
   * [Algorithm Problem Set Analysis - TopCoder Wiki (obsolete?)](http://apps.topcoder.com/wiki/display/tc/Algorithm+Problem+Set+Analysis)
-  
+
 
 | No. |One|Two|Three|
 |:---:|:-:|:-:|:-:|
@@ -31,3 +31,4 @@
 | 675-Div2 |◎|◎ダイクストラ亜種、要復習|-|
 | 712-Div2 |◎|◎|×|
 | 722-Div2 |◎|×|×|
+| 735-Div2 |◎|◎|□★ある文字が大多数を占めるような部分数列の数を求める|
