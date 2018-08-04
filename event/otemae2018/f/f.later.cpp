@@ -1,4 +1,4 @@
-// URL: https://kotamanegi.com/Problems/view/?page=72
+﻿// URL: https://kotamanegi.com/Problems/view/?page=72
 // 問題: 桁和がNとなる数の中でK番目に小さい数を求める
 // 参考： https://kotamanegi.com/Submission/view/index.php?SubmissionID=1755
 
@@ -36,13 +36,15 @@ typedef unsigned long long ull;
 #define mp make_pair
 #define mt make_tuple
 
-
-int N, K;
 #define CMAX 1010
 ll memo[CMAX][CMAX];
 int vis[CMAX][CMAX];
+
+// 桁の数がd、各桁の合計がsmであるような場合の数を求める。
+// ただし先頭が0になるのを許容する。
+// 例: cmb(3, 2) は 002, 011, 020, 101, 110, 200なので6
 ll cmb(int d, int sm) {
-    if (d < 0 or sm < 0) return 0;
+    if (d < 0 || sm < 0) return 0;
     if (d == 0) {
         if (sm == 0) return 1;
         else return 0;
@@ -54,15 +56,25 @@ ll cmb(int d, int sm) {
     vis[d][sm] = 1;
     return memo[d][sm] = res;
 }
-void phase2(int d, int n) {
+
+// 桁数がちょうどd桁、かつ、最初がnである整数のうち、
+// 各桁の合計がNで、かつ、K番目(?)の整数を表示
+void phase2(int d, int n, int N, int K) {
+    // 最初の文字はnで確定
     printf("%d", n); N -= n;
-    for(int dd = d - 1; dd >= 2; --dd) REP(nn, 10) {
-        ll cnt = cmb(dd - 1, N - nn);
-        if (cnt <= K) K -= cnt;
-        else {
-            printf("%d", nn);
-            N -= nn;
-            break;
+    // 2文字目以降を上の桁から順に確定していく
+    // nYXXX  のYの部分を決めたい場合、dd=4
+    for(int dd = d - 1; dd >= 2; --dd) {
+        // Yに何が入るかを0から順番に試す
+        REP(nn, 10) {
+            ll cnt = cmb(dd - 1, N - nn);
+            if (cnt <= K) K -= cnt;
+            // Yに入る数字がnnで確定
+            else {
+                printf("%d", nn);
+                N -= nn;
+                break;
+            }
         }
     }
     if(1 < d) printf("%d\n", N);
@@ -70,15 +82,22 @@ void phase2(int d, int n) {
 }
 
 int main() {
+    int N, K;
     cin >> N >> K;
-    K--;
-
-    FOR(d, 1, 1010) FOR(n, 1, 10) {
-        ll cnt = cmb(d - 1, N - n);
-        if (cnt <= K) K -= cnt;
-        else {
-            phase2(d, n);
-            return 0;
+    K--;  // 1引いておく
+    
+    // dは桁数
+    FOR(d, 1, 1010) {
+        // 例えばd=3のとき、"1xx", "2xx"と順にループ
+        FOR(n, 1, 10) {
+            // 上の"xx"の部分が取りうる場合の数を計算
+            ll cnt = cmb(d - 1, N - n);
+            if (cnt <= K) K -= cnt;
+            else {
+                // d桁で、
+                phase2(d, n, N, K);
+                return 0;
+            }
         }
     }
 }
