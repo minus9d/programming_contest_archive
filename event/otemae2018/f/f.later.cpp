@@ -58,7 +58,7 @@ ll cmb(int d, int sm) {
 }
 
 // 桁数がちょうどd桁、かつ、最初がnである整数のうち、
-// 各桁の合計がNで、かつ、K番目(?)の整数を表示
+// 全桁の合計がNで、かつ、K+1番目(?)の整数を表示
 void phase2(int d, int n, int N, int K) {
     // 最初の文字はnで確定
     printf("%d", n); N -= n;
@@ -77,27 +77,33 @@ void phase2(int d, int n, int N, int K) {
             }
         }
     }
+    // 最後に残った数字が最後の桁
     if(1 < d) printf("%d\n", N);
     else printf("\n");
 }
 
-int main() {
-    int N, K;
-    cin >> N >> K;
+void solve(int N, int K) {
     K--;  // 1引いておく
-    
+
     // dは桁数
     FOR(d, 1, 1010) {
         // 例えばd=3のとき、"1xx", "2xx"と順にループ
         FOR(n, 1, 10) {
-            // 上の"xx"の部分が取りうる場合の数を計算
+            // 上の"xx"の部分の桁和がN-nになる場合の数を計算
             ll cnt = cmb(d - 1, N - n);
             if (cnt <= K) K -= cnt;
             else {
-                // d桁で、
+                // d桁で、phase2
                 phase2(d, n, N, K);
-                return 0;
+                return;
             }
         }
     }
+}
+
+
+int main() {
+    int N, K;
+    cin >> N >> K;
+    solve(N, K);
 }
