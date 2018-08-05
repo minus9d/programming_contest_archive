@@ -1,6 +1,9 @@
 ﻿// URL: https://kotamanegi.com/Problems/view/?page=72
 // 問題: 桁和がNとなる数の中でK番目に小さい数を求める
 // 参考： https://kotamanegi.com/Submission/view/index.php?SubmissionID=1755
+// 解法：桁DP。
+//       「桁の数がd、各桁の合計がsmであるような場合の数（ただし先頭が0になるのを許容）」
+//       はDPにより比較的簡単に求められることを利用する。
 
 #include <algorithm>
 #include <cassert>
@@ -58,7 +61,7 @@ ll cmb(int d, int sm) {
 }
 
 // 桁数がちょうどd桁、かつ、最初がnである整数のうち、
-// 全桁の合計がNで、かつ、K+1番目(?)の整数を表示
+// 全桁の合計がNで、かつ、K番目の整数を表示
 void phase2(int d, int n, int N, int K) {
     // 最初の文字はnで確定
     printf("%d", n); N -= n;
@@ -68,7 +71,7 @@ void phase2(int d, int n, int N, int K) {
         // Yに何が入るかを0から順番に試す
         REP(nn, 10) {
             ll cnt = cmb(dd - 1, N - nn);
-            if (cnt <= K) K -= cnt;
+            if (cnt < K) K -= cnt;
             // Yに入る数字がnnで確定
             else {
                 printf("%d", nn);
@@ -83,15 +86,13 @@ void phase2(int d, int n, int N, int K) {
 }
 
 void solve(int N, int K) {
-    K--;  // 1引いておく
-
     // dは桁数
     FOR(d, 1, 1010) {
         // 例えばd=3のとき、"1xx", "2xx"と順にループ
         FOR(n, 1, 10) {
             // 上の"xx"の部分の桁和がN-nになる場合の数を計算
             ll cnt = cmb(d - 1, N - n);
-            if (cnt <= K) K -= cnt;
+            if (cnt < K) K -= cnt;
             else {
                 // d桁で、phase2
                 phase2(d, n, N, K);
