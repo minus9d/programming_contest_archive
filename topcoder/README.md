@@ -31,9 +31,15 @@
 
 | 問題 | status | 問題概要 | コメント |
 |:---:|:-:|:-|:-|
-| TCO19 Single Round Match 737 easy | ◎ | 先攻が勝利できる手数が最大になるようNimの山を構成 | 実験でぎりぎり解けた、あとから証明を理解 |
-| TCO19 Single Round Match 737 med  | - |  |  |
-| TCO19 Single Round Match 737 hard | - |  |  |
+| TCO19 SRM 737 easy | ◎ | 先攻が勝利できる手数が最大になるようNimの山を構成 | 実験でぎりぎり解けた、あとから証明を理解 |
+| TCO19 SRM 737 med  |- |  |  |
+| TCO19 SRM 737 hard |- |  |  |
+| TCO19 SRM 749 easy |◎|  |オーバーフローに気を付けて二分探索|
+| TCO19 SRM 749 med  |- |  |  |
+| TCO19 SRM 749 hard |- |  |  |
+| TCO19 SRM 752 easy |◎|`<>=!`を成り立たせる最小の文字列を生成|DFSで解けたが一般にはDPらしい|
+| TCO19 SRM 752 med  |- |  |  |
+| TCO19 SRM 752 hard |- |  |  |
 
 ### Div. 2
 
