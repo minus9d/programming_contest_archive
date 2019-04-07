@@ -13,9 +13,17 @@ import re
 import string
 import sys
 
-
 def solve():
-    A, B = map(int, input().split())
+    N = input()
+    a = b = ''
+    for ch in N:
+        if ch == '4':
+            a += '2'
+            b += '2'
+        else:
+            a += ch
+            b += '0'
+    print(int(a), int(b))
 
 
 T = int(input())
