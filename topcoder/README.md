@@ -46,6 +46,9 @@
 | TCO19 SRM 752 easy |◎|`<>=!`を成り立たせる最小の文字列を生成|DFSで解けたが一般にはDPらしい|
 | TCO19 SRM 752 med  |- |  |  |
 | TCO19 SRM 752 hard |- |  |  |
+| TCO19 SRM 759 easy |◎|各桁の和がsumsになる5桁の素数3つを返す|  |
+| TCO19 SRM 759 med  |- |  |  |
+| TCO19 SRM 759 hard |- |  |  |
 
 ### Div. 2
 
