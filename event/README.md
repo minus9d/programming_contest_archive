@@ -208,3 +208,16 @@ https://atcoder.jp/contests/iroha2019-day1/
 | 2019 day1 J |  | | |
 | 2019 day1 K |×| | |
 | 2019 day1 L |  | | |
+
+# diverta 2019 Programming Contest 2
+
+https://atcoder.jp/contests/diverta2019-2
+
+| 問題 | status | 問題概要 | コメント |
+|:--:|:---:|:---:|:---:|
+| A |◎| | |
+| B |◎| | |
+| C |◎| | |
+| D |□|ドングリと金銀銅の換金を2回行いドングリ最大化|★DPに気付けなかった|
+| E |- | | |
+| F |- | | |
