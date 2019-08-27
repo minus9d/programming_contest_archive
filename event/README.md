@@ -145,7 +145,7 @@
 | 2018 L |×| | |
 | 2018 M |×| | |
 
-# CADDi 2018
+### CADDi 2018
 
 | 問題 | status | 問題概要 | コメント |
 |:--:|:---:|:---:|:---:|
@@ -156,7 +156,7 @@
 | 2018 E |×| | |
 | 2018 F |  | | |
 
-# AISing 2019
+### AISing 2019
 
 | 問題 | status | 問題概要 | コメント |
 |:--:|:---:|:---:|:---:|
@@ -166,7 +166,7 @@
 | 2019 D |◎|青木くん高橋くんが交互にカードを取る。高橋くんがとるカードの整数の和を求める|二分探索。例外処理を慎重に実装|
 | 2019 E |×|サーバーの機能を停止させるための最小ケーブル切断数|木DP。二乗の木DPで計算量を落とす|
 
-# KEYENCE 2019
+### KEYENCE 2019
 
 | 問題 | status | 問題概要 | コメント |
 |:--:|:---:|:---:|:---:|
@@ -177,7 +177,7 @@
 | 2019 E |  | | |
 | 2019 F |  | | |
 
-# Nikkei 2019
+### Nikkei 2019
 
 https://atcoder.jp/contests/nikkei2019-qual
 
@@ -190,7 +190,7 @@ https://atcoder.jp/contests/nikkei2019-qual
 | 2019 Qual E |×|グラフから辺を取り除いて、どの辺の重みも、その辺が属する連結成分の頂点の重みの和以下になるようにする| |
 | 2019 Qual F |  | | |
 
-# いろはちゃんコンテスト 2019
+### いろはちゃんコンテスト 2019
 
 https://atcoder.jp/contests/iroha2019-day1/
 
@@ -209,7 +209,7 @@ https://atcoder.jp/contests/iroha2019-day1/
 | 2019 day1 K |×| | |
 | 2019 day1 L |  | | |
 
-# diverta 2019 Programming Contest 2
+### diverta 2019 Programming Contest 2
 
 https://atcoder.jp/contests/diverta2019-2
 
@@ -219,5 +219,18 @@ https://atcoder.jp/contests/diverta2019-2
 | B |◎| | |
 | C |◎| | |
 | D |□|ドングリと金銀銅の換金を2回行いドングリ最大化|★DPに気付けなかった|
+| E |- | | |
+| F |- | | |
+
+### 第一回日本最強プログラマー学生選手権-予選-
+
+https://atcoder.jp/contests/jsc2019-qual
+
+| 問題 | status | 問題概要 | コメント |
+|:--:|:---:|:---:|:---:|
+| A |◎| | |
+| B |◎| | |
+| C |□| | |
+| D |- | | |
 | E |- | | |
 | F |- | | |
