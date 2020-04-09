@@ -30,4 +30,4 @@ https://codingcompetitions.withgoogle.com/kickstart/round/000000000019ffc7
 | 2020 Round A / A |◎/◎|  |  |
 | 2020 Round A / B |◎/◎|  |  |
 | 2020 Round A / C |◎/◎|  |  |
-| 2020 Round A / D |◎/◎|  |★|
+| 2020 Round A / D |◎/◎|N個の文字列をサイズKのグループに分割するとき、各グループのprefixの|★Trie木で木dpでできるらしい、違う解き方で解いた|
