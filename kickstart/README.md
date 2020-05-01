@@ -27,7 +27,18 @@ https://codingcompetitions.withgoogle.com/kickstart/round/000000000019ffc7
 
 | 問題 | status | 問題概要 | コメント |
 |:---:|:-:|:-|:-|
-| 2020 Round A / A |◎/◎|  |  |
-| 2020 Round A / B |◎/◎|  |  |
-| 2020 Round A / C |◎/◎|  |  |
-| 2020 Round A / D |◎/◎|N個の文字列をサイズKのグループに分割するとき、各グループのprefixの|★Trie木で木dpでできるらしい、違う解き方で解いた|
+| A |◎/◎|  |  |
+| B |◎/◎|  |  |
+| C |◎/◎|  |  |
+| D |◎/◎|N個の文字列をサイズKのグループに分割するとき、各グループのprefixの|★Trie木で木dpでできるらしい、違う解き方で解いた|
+
+### Round B
+
+https://codingcompetitions.withgoogle.com/kickstart/round/000000000019ffc8
+
+| 問題 | status | 問題概要 | コメント |
+|:---:|:-:|:-|:-|
+| A |◎/◎|  |  |
+| B |◎/◎|  |  |
+| C |◎/◎|  |  |
+| D |◎/□|矩形の穴が1個ある盤面の左上から出発したロボットが右下に到達する確率を求める|★仮想盤面を考える。解説記事書いた|
