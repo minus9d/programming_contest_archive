@@ -92,37 +92,35 @@ private:
 
 
 
+// クラスカル法で最小全域木を求める
 class Kruskal {
-
-private:
-
-// costが小さい順にソート
-static bool comp(const edge& e1, const edge& e2) {
-    return e1.cost < e2.cost;
-}
-
 public:
 
-// クラスカル法で最小全域木を求める
-static pair<ll, set<pair<int, int>>>  kruskal(vector<edge>& edges, int V)
+// ret: 最小全域木のコスト, 最小全域木の構築に使ったエッジ (1: 使用, 0: 不使用)
+static tuple<ll, vector<int>> kruskal(vector<edge>& edges, int V)
 {
-    sort(ALL(edges), comp);
-    UnionFind uf;
-    uf.Init(V);
-
-    ll res = 0;
-    set<pair<int, int>> used_edges;
-
-    ll E = edges.size();
+    auto E = SIZE(edges);
+    using intedge = pair<int, edge>;
+    vector<intedge> idx_edges;
     REP(i, E) {
-        edge e = edges[i];
+        idx_edges.pb(mp(i, edges[i]));
+    }
+    sort(ALL(idx_edges), [](const intedge& a, const intedge& b) {
+                             return a.second.cost < b.second.cost;
+                         });
+    UnionFind uf; uf.Init(V);
+    ll res = 0;
+    vector<int> used_edge_indexes(E);
+    REP(i, E) {
+        auto index = idx_edges[i].first;
+        auto& e = idx_edges[i].second;
         if (!uf.Same(e.u, e.v)) {
             uf.Unite(e.u, e.v);
             res += e.cost;
-            used_edges.insert({e.u, e.v});
+            used_edge_indexes[index] = 1;
         }
     }
-    return mp(res, used_edges);
+    return mt(res, used_edge_indexes);
 }
 
 };
@@ -140,26 +138,26 @@ class RailwayMaster {
         }
         auto res = Kruskal::kruskal(edges, N);
         auto remain_value = get<0>(res);
-        auto used_edges = get<1>(res);
+        auto used_edge_indexes = get<1>(res);
 
-        auto remain_num = SIZE(used_edges);
-        auto removed_num = M - remain_num;
+        auto used_edge_num = accumulate(ALL(used_edge_indexes), 0);
+        auto removed_num = M - used_edge_num;
 
         if (removed_num <= K) {
             return value_sum - remain_value;
         }
 
-        vector<ll> others;
+        vector<ll> not_used_edges;
         REP(m, M) {
-            if (! used_edges.count(mp(a[m], b[m]))) {
-                others.pb(v[m]);
+            if (!used_edge_indexes[m]) {
+                not_used_edges.pb(v[m]);
             }
         }
-        sort(ALL(others));
-        reverse(ALL(others));
+        sort(ALL(not_used_edges));
+        reverse(ALL(not_used_edges));
         ll ans = 0;
         REP(k, K) {
-            ans += others[k];
+            ans += not_used_edges[k];
         }
         return ans;
     }
