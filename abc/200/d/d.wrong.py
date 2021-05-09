@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""
+本番中にACした嘘回答
+
+2
+200 1
+で本当はYesになるべきところがNoになる
+"""
+
 import array
 from bisect import *
 from collections import *
