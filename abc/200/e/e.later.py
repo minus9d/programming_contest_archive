@@ -1,17 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import array
 from bisect import *
 from collections import *
-import fractions
-import heapq
 from itertools import *
-import math
-import random
-import re
-import string
-import sys
+
+import numpy as np
+from numba import njit
 
 def simulate(N):
     arr = []
@@ -35,9 +30,6 @@ def simulate(N):
     for k, v in sorted(counter .items()):
         print(k, v)
         
-# for n in range(1, 10):
-#     simulate(n)
-#     print()
 
 def get_comb(N, s):
     m = N - 1
@@ -47,6 +39,12 @@ def get_comb(N, s):
 
 
 def get_arr(N):
+    """
+    (1 + x + ... + x^(N-1)) ^ 3
+    の各係数の値を返す。数式は
+    https://oeis.org/A109439
+    をそのまま使用
+    """
     arr = []
     for k in range(N):
         arr.append((k + 1) * (k + 2) // 2)
@@ -61,19 +59,42 @@ def get_arr(N):
     # print(arr)
 
 
+def get_arr2(N):
+    """
+    (1 + x + ... + x^(N-1)) ^ 3
+    の各係数の値を返す。DPを利用
+    """
+    # e.g. N = 5のとき
+    # 1回目: 0  1  1  1  1  1  0  0  0  0  0  0  0  0  0  0
+    # 2回目: 0  0  1  2  3  4  5  4  3  2  1  0  0  0  0  0
+    # 3回目: 0  0  0  1  3  6 10 15 18 19 18 15 10  6  3  1
+
+    arr = np.zeros((3, N * 3 + 1), dtype=np.int)
+
+    @njit
+    def internal(arr):
+        arr[0, 1:N+1] = 1
+        for i in range(2):
+            # 累積和
+            cumsum = np.cumsum(arr[i])
+            for j in range(i + 1, N * (i + 2) + 1):
+                end = j - 1
+                begin = end - N
+                if begin < 0:
+                    arr[i + 1, j] = cumsum[end]
+                else:
+                    arr[i + 1, j] = cumsum[end] - cumsum[begin]
+        return arr[2][3:]
+
+    return internal(arr)
+
+
 # for n in range(1, 10):
 #     print(get_arr(n))
 #     print()
 
-def solve(N, K):
-
-    # N = 5のとき
-    # (1 + x + x^2 + x^3 + x^4) ^ 3
-    # の係数を考える
-
-    # see https://oeis.org/A109439
-    arr = get_arr(N)
-
+@njit
+def find_ans(arr):
     so_far = 0
     for k, v in enumerate(arr):
         k += 3
@@ -101,12 +122,25 @@ def solve(N, K):
                     yum = yum_min + n - 1
                     pop = yum_pop - yum
                     return [clean, yum, pop]
-            break
 
-    # so_far = 0
-    # for s in range(3, N * 3 + 1):
-    #     comb = get_comb(N, s)
-        
+
+def solve(N, K):
+
+    # N = 5のとき
+    # (1 + x + x^2 + x^3 + x^4) ^ 3
+    # の係数を考える
+
+    # https://oeis.org/A109439 の数式をそのまま実装
+    # arr1 = get_arr(N)
+
+    # DPで係数を取得（競技プログラミング的にはこちら）
+    arr2 = get_arr2(N)
+
+    # arr1を使ってもACすることを確認済み (https://atcoder.jp/contests/abc200/submissions/22439979)
+    # ここではarr2を使う
+    arr = arr2
+
+    return find_ans(arr)
 
 
 N, K = map(int, input().split())
