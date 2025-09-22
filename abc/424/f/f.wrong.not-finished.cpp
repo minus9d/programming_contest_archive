@@ -1,3 +1,13 @@
+// 本番中に考えていた回答
+//
+// 以下のパターンでNG
+// 8 4
+// 4 5
+// 7 8 
+// 2 3
+// 1 6
+//
+
 #include <algorithm>
 #include <array>
 #include <cassert>
@@ -160,26 +170,113 @@ int find_ccw(set<int>& points, int p) {
     }
 }
 
-int main(void)
-{
-    ios::sync_with_stdio(false);
-    cin.tie(0);
 
-    int N; int Q;
-    cin >> N >> Q;
+// https://atcoder.jp/contests/abc424/submissions/69461365
 
+struct SegTreeMax {
+    int n;
+    vector<int> seg;
+    SegTreeMax(int sz=0){ init(sz); }
+    void init(int sz){
+        n = 1;
+        while(n < sz) n <<= 1;
+        seg.assign(2*n, 0);
+    }
+    // point update: set position p (1-indexed) to value v
+    void setval(int p, int v){
+        p += n - 1;
+        seg[p] = v;
+        for(p >>= 1; p; p >>= 1) seg[p] = max(seg[p<<1], seg[p<<1|1]);
+    }
+    // query max on [l, r] (1-indexed, inclusive)
+    int query(int l, int r){
+        if(l > r) return 0;
+        l += n - 1; r += n - 1;
+        int res = 0;
+        while(l <= r){
+            if(l & 1) res = max(res, seg[l++]);
+            if(!(r & 1)) res = max(res, seg[r--]);
+            l >>= 1; r >>= 1;
+        }
+        return res;
+    }
+};
+
+struct SegTreeMin {
+    int n;
+    vector<int> seg;
+    const int INF = 1e9;
+    SegTreeMin(int sz=0){ init(sz); }
+    void init(int sz){
+        n = 1;
+        while(n < sz) n <<= 1;
+        seg.assign(2*n, INF);
+    }
+    // point update: set position p (1-indexed) to value v
+    void setval(int p, int v){
+        p += n - 1;
+        seg[p] = v;
+        for(p >>= 1; p; p >>= 1) seg[p] = min(seg[p<<1], seg[p<<1|1]);
+    }
+    // query min on [l, r] (1-indexed, inclusive)
+    int query(int l, int r){
+        if(l > r) return INF;
+        l += n - 1; r += n - 1;
+        int res = INF;
+        while(l <= r){
+            if(l & 1) res = min(res, seg[l++]);
+            if(!(r & 1)) res = min(res, seg[r--]);
+            l >>= 1; r >>= 1;
+        }
+        return res;
+    }
+};
+
+vector<string> solve_gt(int N, int Q, vector<pair<int, int>>& qs) {
+
+    SegTreeMax segMax(N+2);
+    SegTreeMin segMin(N+2);
+
+    vector<string> ans;
+    for(auto &p : qs){
+        int a = p.first, b = p.second;
+        // check inside interval (a,b): positions a+1 .. b-1
+        int l = a + 1, r = b - 1;
+        bool intersects = false;
+        if(l <= r){
+            int max_right = segMax.query(l, r);
+            if(max_right > b) intersects = true;
+            int min_left = segMin.query(l, r);
+            if(min_left < a) intersects = true;
+        }
+        if(intersects){
+            ans.push_back("No");
+            cout << "here..." << endl;
+        }else{
+            ans.push_back("Yes");
+            // insert this chord: left at a stores right b; right at b stores left a
+            segMax.setval(a, b);
+            segMin.setval(b, a);
+        }
+    }    
+    return ans;
+}
+
+
+vector<string> solve(int N, int Q, vector<pair<int, int>>& AB) {
     set<int> points;
     vector<pair<int, int>> point2pair(N + 1);
 
     set<pair<int, int>> edge;
 
+    vector<string> ans;
     REP(q, Q) {
 
         // cout << "[q == " << q << endl;
-        int a, b; cin >> a >> b;
+        auto [a, b] = AB[q];
 
         if (q == 0) {
-            cout << "Yes" << endl;
+            ans.push_back("Yes");
 
             points.insert(a);
             point2pair[a] = {a, b};
@@ -209,7 +306,7 @@ int main(void)
 
             // 連番だったらOK
             if (find_cw(points, a) == b or find_cw(points, b) == a) {
-                cout << "Yes" << endl;
+                ans.push_back("Yes");
                 point2pair[a] = {a, b};
                 point2pair[b] = {a, b};
                 edge.insert({a, b});
@@ -226,7 +323,7 @@ int main(void)
             if (edge.count({min({p1, p2}), max({p1, p2})}) and
                 edge.count({min({p3, p4}), max({p3, p4})}))
             {
-                cout << "Yes" << endl;
+                ans.push_back("Yes");
                 point2pair[a] = {a, b};
                 point2pair[b] = {a, b};
                 edge.insert({a, b});
@@ -234,13 +331,70 @@ int main(void)
             }
 
             // NGの場合は消す
-            cout << "No" << endl;
+            ans.push_back("No");
             points.erase(a);
             points.erase(b);
         }
+    }    
+    return ans;
+}
 
-        
+int main(void)
+{
+    ios::sync_with_stdio(false);
+    cin.tie(0);
 
+    int N; int Q;
+    cin >> N >> Q;
+
+    // for debug
+    N = 8; Q = 4;
+    vector<int> nums;
+    REP(n, N) nums.push_back(n + 1);
+    while(1) {
+        random_shuffle(ALL(nums));
+        vector<pair<int, int>> AB(Q);
+        REP(q, Q) {
+            auto mn = min({nums[q * 2], nums[q * 2 + 1]});
+            auto mx = max({nums[q * 2], nums[q * 2 + 1]});
+            AB[q] = {mn, mx};
+        }
+
+        auto mine = solve(N, Q, AB);
+        auto gt = solve_gt(N, Q, AB);
+
+        if (mine != gt) {
+
+            for(auto [a, b]: AB) {
+                cout << "(" << a << "," << b << "), ";
+            }
+            cout << endl;
+    
+            cout << "mine: ";
+            for(auto r: mine) {
+                cout << r << ", ";
+            }
+            cout << endl;
+
+            cout << "  gt: ";
+            for(auto r: gt) {
+                cout << r << ", ";
+            }
+            cout << endl;
+            cout << endl;
+        }
+    }
+
+
+    vector<pair<int, int>> AB(Q);
+    REP(q, Q) {
+        int a, b; cin >> a >> b;
+        AB[q] = {a, b};
+    }
+
+    auto ret = solve(N, Q, AB);
+    for(auto r: ret) {
+        cout << r << endl;
     }
 
     return 0;
